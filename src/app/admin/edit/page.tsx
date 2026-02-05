@@ -1659,7 +1659,7 @@ function PreviewSection({ profileData, publications, projects, currentSection }:
     <div className="space-y-6">
       <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">📋 Preview Mode</h2>
-        <p className="text-blue-700 dark:text-blue-300">Review your changes below. If everything looks good, click "Confirm & Update Website" to save.</p>
+        <p className="text-blue-700 dark:text-blue-300">Review your changes below. If everything looks good, click &ldquo;Confirm &amp; Update Website&rdquo; to save.</p>
       </div>
 
       {currentSection === 'profile' && (
