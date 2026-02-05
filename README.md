@@ -1,8 +1,7 @@
-﻿# 🎓 Academic Portfolio Website - Complete Guide
-
+﻿# 🎓 Academic Portfolio Website
 > **A modern, responsive academic portfolio with AI-powered content management and cross-browser compatibility**
 
-Built for **Hirak Mondal** - M.Sc. CSE Student, Khulna University
+ **Hirak Mondal** - M.Sc. CSE Student, Khulna University
 
 ---
 
