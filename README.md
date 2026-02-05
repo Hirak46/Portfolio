@@ -21,7 +21,7 @@ Built for **Hirak Mondal** - M.Sc. CSE Student, Khulna University
 - [Troubleshooting](#-troubleshooting)
 
 ---
-
+<!--
 ## 🚀 Quick Start (Run the Project)
 
 ### Prerequisites
@@ -41,7 +41,7 @@ npm install
 # 3. Start development server
 npm run dev
 ```
-
+-->
 ### Access Points
 - **🌐 Main Website**: http://localhost:3000
 <!--
@@ -49,7 +49,7 @@ npm run dev
 - **📊 AI Agent**: http://localhost:3000/admin (Password: `hirak2024admin`)
 -->
 
-
+<!--
 ### Quick Build & Deploy
 ```powershell
 # Build for production
@@ -60,7 +60,7 @@ npm start
 ```
 
 ---
-<!--
+
 ## 📁 Project Structure (Folder Organization)
 
 ```
