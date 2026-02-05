@@ -44,8 +44,11 @@ npm run dev
 
 ### Access Points
 - **🌐 Main Website**: http://localhost:3000
+<!--
 - **🔐 Admin Panel**: http://localhost:3000/admin
 - **📊 AI Agent**: http://localhost:3000/admin (Password: `hirak2024admin`)
+-->
+
 
 ### Quick Build & Deploy
 ```powershell
