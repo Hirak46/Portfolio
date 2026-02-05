@@ -60,7 +60,7 @@ npm start
 ```
 
 ---
-
+<!--
 ## 📁 Project Structure (Folder Organization)
 
 ```
@@ -581,7 +581,7 @@ xl:  1280px  /* Large laptops */
 - **beautifulsoup4**: HTML parsing
 
 ---
-
+<!--
 ## 🔧 Troubleshooting
 
 ### Common Issues & Solutions
@@ -734,3 +734,4 @@ git push             # Push to GitHub
 **🎉 Your academic portfolio is ready! Visit http://localhost:3000 to see it in action!**
 
 For questions or issues, refer to the documentation files or check the troubleshooting section above.
+-->
