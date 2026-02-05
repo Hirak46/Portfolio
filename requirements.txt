@@ -1,0 +1,4 @@
+# Python packages for Scholar automation
+scholarly
+requests
+beautifulsoup4

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "1",
+    "title": "Face Mask Detection",
+    "description": "A computer vision project using deep learning to detect whether people are wearing face masks in images and videos. Uses CNN models trained on custom datasets.",
+    "technologies": ["Python", "OpenCV", "TensorFlow", "PyTorch", "scikit-learn"],
+    "github": "https://github.com/Hirak46/Face_mask_Detction",
+    "demo": null,
+    "image": "/projects/facemask.jpg",
+    "featured": true,
+    "date": "August 2023"
+  },
+  {
+    "id": "2",
+    "title": "Chat Application",
+    "description": "A real-time chat application enabling users to communicate over the internet with features like text messaging, file sharing, and group chats.",
+    "technologies": ["HTML", "CSS", "JavaScript", "Node.js", "PHP", "MySQL"],
+    "github": "https://github.com/Hirak46/chat-apps",
+    "demo": null,
+    "image": "/projects/chat.jpg",
+    "featured": true,
+    "date": "February 2023"
+  },
+  {
+    "id": "3",
+    "title": "Banking Management System",
+    "description": "A comprehensive software application for banks to manage operations including customer accounts, transactions, loans, and financial activities efficiently.",
+    "technologies": ["C#.NET", "SQL", "XML", "Windows Forms"],
+    "github": "https://github.com/Hirak46/Bank-Management-System",
+    "demo": null,
+    "image": "/projects/banking.jpg",
+    "featured": true,
+    "date": "July 2022"
+  },
+  {
+    "id": "4",
+    "title": "Tic-Tac-Toe Game",
+    "description": "A classic implementation of the Tic-Tac-Toe game where two players take turns marking spaces in a 3×3 grid. Features AI opponent and multiplayer mode.",
+    "technologies": ["Java", "JavaFX", "Swing"],
+    "github": "https://github.com/Hirak46/Tik-Tac-Toe",
+    "demo": null,
+    "image": "/projects/tictactoe.jpg",
+    "featured": false,
+    "date": "April 2022"
+  },
+  {
+    "id": "5",
+    "title": "Blood Donation App",
+    "description": "A mobile application connecting blood donors with blood banks and individuals in need. Features donor registration, donation history tracking, and location-based notifications.",
+    "technologies": ["Java", "Android SDK", "SQL", "Firebase"],
+    "github": "https://github.com/Hirak46/Blood_Donation_Apps",
+    "demo": null,
+    "image": "/projects/blooddonation.jpg",
+    "featured": false,
+    "date": "October 2021"
+  }
+]

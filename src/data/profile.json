@@ -1,0 +1,138 @@
+{
+  "name": "Hirak Mondal",
+  "title": "M.Sc. Researcher | Secure and Privacy-Preserving Machine Learning",
+  "tagline": "Research focused on secure and privacy-preserving healthcare systems, with emphasis on federated learning, computer vision–based medical analysis, and defense mechanisms against data and model poisoning attacks.",
+  "email": "hirakmondal.cse@gmail.com",
+  "phone": "+8801400705050",
+  "location": "Batiaghata-9260, Khulna, Bangladesh",
+  "photo": "/Hirak.jpg",
+  "bio": "I am currently pursuing an M.Sc. in Computer Science and Engineering at Khulna University, Bangladesh, and obtained my B.Sc. in Computer Science and Engineering from North Western University, Khulna. My research focuses on secure and privacy-aware AI for healthcare systems, with particular emphasis on federated learning, cybersecurity, robust computer vision, and defenses against data and model poisoning attacks. I have authored and co-authored 21 publications with 81 citations (h-index: 3), including journal articles, conference papers, and book chapters published in venues such as IEEE Access, Springer, CRC Press, and River Publishers.",
+  "interests": [
+    "Health Informatics",
+    "Neuroscience",
+    "Cybersecurity",
+    "Machine Learning",
+    "Deep Learning",
+    "Artificial Intelligence",
+    "Federated Learning",
+    "Computer Vision"
+  ],
+  "education": [
+    {
+      "degree": "M.Sc. in Computer Science & Engineering",
+      "institution": "Khulna University",
+      "year": "January 2025 - Present",
+      "description": "Courses: Research Methodology & Ethics, Network Optimization, Big Data Analytics, Advanced Probability & Statistics, Blockchain Technology, Machine Learning"
+    },
+    {
+      "degree": "B.Sc. in Computer Science & Engineering",
+      "institution": "North Western University",
+      "year": "January 2020 - May 2024",
+      "description": "CGPA: 3.67/4.00. Major Courses: Data Structures, Algorithms, Operating Systems, Software Engineering, Machine Learning, Artificial Intelligence"
+    },
+    {
+      "degree": "Higher Secondary Certificate (Science)",
+      "institution": "Batiaghata College",
+      "year": "May 2017 - July 2019",
+      "description": "GPA: 4.08/5.00. Major Subjects: Physics, Chemistry, Mathematics, Biology"
+    },
+    {
+      "degree": "Secondary School Certificate (Science)",
+      "institution": "Banda Higher Secondary School",
+      "year": "February 2015 - April 2017",
+      "description": "GPA: 5.00/5.00. Major Subjects: Physics, Chemistry, Mathematics, Biology"
+    }
+  ],
+  "social": {
+    "scholar": "https://scholar.google.com/citations?user=YEANndoAAAAJ&hl=en",
+    "github": "https://github.com/Hirak46",
+    "linkedin": "https://www.linkedin.com/in/hirak-mondal-94b651213/",
+    "orcid": "https://orcid.org/0009-0006-4756-5529",
+    "researchgate": "https://www.researchgate.net/profile/Hirak-Mondal-2"
+  },  "scholarStats": {
+    "totalCitations": 81,
+    "citationsSince2021": 74,
+    "hIndex": 3,
+    "i10Index": 3,
+    "lastUpdated": "2026-02-04"
+  },  "stats": {
+    "publications": 21,
+    "citations": 81,
+    "hIndex": 3,
+    "i10Index": 3
+  },
+  "skills": {
+    "languages": ["English (Intermediate)", "Bangla (Native)"],
+    "programming": ["Python (NumPy, SciPy, Matplotlib, Pandas)", "C", "C++", "Java", "C#", "HTML", "CSS"],
+    "platforms": ["Visual Studio", "Google Colab", "Anaconda", "PyCharm", "Web", "Windows", "Arduino"],
+    "tools": ["MySQL Workbench", "Git", "Docker"],
+    "documentation": ["Microsoft Office Suite", "LaTeX"],
+    "soft": ["Teamwork", "Leadership", "Communication", "Project Management", "Writing", "Time Management"]
+  },
+  "workExperience": [
+    {
+      "position": "Research Assistant",
+      "organization": "VRD Research Lab",
+      "location": "Khulna, Bangladesh",
+      "period": "March 2023 - December 2024",
+      "description": "Support innovative research in various sectors, data collection and analysis, research paper writing, experiment design, staying updated with latest developments.",
+      "email": "hirak@vrdlab.com"
+    }
+  ],
+  "reviewExperience": {
+    "journals": [
+      "Computers & Electrical Engineering (Elsevier)",
+      "Epidemiology and Population Health (Elsevier)",
+      "Frontiers in Medicine (Frontiers)"
+    ],
+    "conferences": [
+      {
+        "name": "CISCom-2025",
+        "fullName": "1st International Conference on Computational Intelligence and Soft Computing",
+        "date": "November 26-27, 2025",
+        "location": "Melaka, Malaysia",
+        "publisher": "IEEE",
+        "role": "Technical Reviewer"
+      }
+    ]
+  },
+  "memberships": [
+    {
+      "organization": "Institute of Electrical and Electronics Engineers (IEEE)",
+      "period": "2025 - Present",
+      "type": "Graduate Student Member & IEEE Young Professionals"
+    }
+  ],
+  "awards": [
+    {
+      "title": "Top 10 Student Paper Awards",
+      "event": "6th International Conference on Electrical Engineering and Information & Communication Technology (ICEEICT)",
+      "date": "May 6, 2024",
+      "paperId": "Paper ID: 304"
+    }
+  ],
+  "certifications": [
+    "Microsoft Azure Fundamentals: Certificate of participation (AZ-900)",
+    "Microsoft Azure Administrator: Certificate of participation (AZ-104)",
+    "ICPC 2021: Participation in Asia Dhaka Regional Preliminary Contest",
+    "ICPC 2022: Participation in Asia Dhaka Regional Preliminary Contest",
+    "Khulna University Datathon: Participation in Final Round",
+    "Intra CSE Programming Contest: Participation at North Western University"
+  ],
+  "volunteer": [
+    "NWU CSE FEST-2023: Excellence as an Organizing Committee Member",
+    "Volunteer ICPC 2023: Participation as a volunteer",
+    "NWU Comptron Club: Publication Secretary"
+  ],
+  "references": [
+    {
+      "name": "Dr. Anupam Kumar Bairagi",
+      "position": "Professor",
+      "department": "Computer Science and Engineering",
+      "institution": "Khulna University",
+      "location": "Khulna-9208, Bangladesh",
+      "email": "anupam@cse.ku.ac.bd",
+      "url": "https://ku.ac.bd/discipline/cse/faculty/anupam"
+    }
+  ]
+}
