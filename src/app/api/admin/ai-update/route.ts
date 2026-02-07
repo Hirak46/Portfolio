@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { isGitHubConfigured, readFromGitHub, commitToGitHub } from '@/lib/github';
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,15 +55,26 @@ async function processAIInstruction(instruction: string, files: File[], applyCha
   const filesModified: string[] = [];
   const suggestions: string[] = [];
 
-  // Get file paths
-  const profilePath = path.join(process.cwd(), 'src', 'data', 'profile.json');
-  const publicationsPath = path.join(process.cwd(), 'src', 'data', 'publications.json');
-  const projectsPath = path.join(process.cwd(), 'src', 'data', 'projects.json');
+  // Read current data (GitHub API on Vercel, filesystem locally)
+  let profileData, publicationsData, projectsData;
 
-  // Read current data
-  const profileData = JSON.parse(await fs.readFile(profilePath, 'utf-8'));
-  const publicationsData = JSON.parse(await fs.readFile(publicationsPath, 'utf-8'));
-  const projectsData = JSON.parse(await fs.readFile(projectsPath, 'utf-8'));
+  if (isGitHubConfigured()) {
+    const [profileRaw, pubsRaw, projsRaw] = await Promise.all([
+      readFromGitHub('src/data/profile.json'),
+      readFromGitHub('src/data/publications.json'),
+      readFromGitHub('src/data/projects.json'),
+    ]);
+    profileData = JSON.parse(profileRaw);
+    publicationsData = JSON.parse(pubsRaw);
+    projectsData = JSON.parse(projsRaw);
+  } else {
+    const profilePath = path.join(process.cwd(), 'src', 'data', 'profile.json');
+    const publicationsPath = path.join(process.cwd(), 'src', 'data', 'publications.json');
+    const projectsPath = path.join(process.cwd(), 'src', 'data', 'projects.json');
+    profileData = JSON.parse(await fs.readFile(profilePath, 'utf-8'));
+    publicationsData = JSON.parse(await fs.readFile(publicationsPath, 'utf-8'));
+    projectsData = JSON.parse(await fs.readFile(projectsPath, 'utf-8'));
+  }
 
   const instructionLower = instruction.toLowerCase();
 
@@ -447,16 +459,54 @@ async function processAIInstruction(instruction: string, files: File[], applyCha
   // ===== SAVE AND FINALIZE =====
   // Save updated data
   if (changes.length > 0 && applyChanges) {
-    await fs.writeFile(profilePath, JSON.stringify(profileData, null, 2));
+    const profileJson = JSON.stringify(profileData, null, 2);
+    const pubsJson = JSON.stringify(publicationsData, null, 2);
+    const projsJson = JSON.stringify(projectsData, null, 2);
+
+    if (isGitHubConfigured()) {
+      // On Vercel: commit to GitHub → triggers auto-redeploy
+      const filesToCommit: Array<{ path: string; content: string }> = [
+        { path: 'src/data/profile.json', content: profileJson },
+        { path: 'public/data/profile.json', content: profileJson },
+      ];
+
+      if (filesModified.includes('publications.json')) {
+        filesToCommit.push(
+          { path: 'src/data/publications.json', content: pubsJson },
+          { path: 'public/data/publications.json', content: pubsJson }
+        );
+      }
+
+      if (filesModified.includes('projects.json')) {
+        filesToCommit.push(
+          { path: 'src/data/projects.json', content: projsJson },
+          { path: 'public/data/projects.json', content: projsJson }
+        );
+      }
+
+      await commitToGitHub(filesToCommit, `AI Agent: ${instruction.substring(0, 50)}`);
+      changes.push('');
+      changes.push('🚀 Changes committed to GitHub! Site will auto-update in ~30 seconds.');
+    } else {
+      // Local development: write to filesystem
+      const dataDir = path.join(process.cwd(), 'src', 'data');
+      const publicDir = path.join(process.cwd(), 'public', 'data');
+
+      await fs.writeFile(path.join(dataDir, 'profile.json'), profileJson);
+      await fs.writeFile(path.join(publicDir, 'profile.json'), profileJson);
+
+      if (filesModified.includes('publications.json')) {
+        await fs.writeFile(path.join(dataDir, 'publications.json'), pubsJson);
+        await fs.writeFile(path.join(publicDir, 'publications.json'), pubsJson);
+      }
+
+      if (filesModified.includes('projects.json')) {
+        await fs.writeFile(path.join(dataDir, 'projects.json'), projsJson);
+        await fs.writeFile(path.join(publicDir, 'projects.json'), projsJson);
+      }
+    }
+
     filesModified.push('profile.json');
-    
-    if (filesModified.includes('publications.json')) {
-      await fs.writeFile(publicationsPath, JSON.stringify(publicationsData, null, 2));
-    }
-    
-    if (filesModified.includes('projects.json')) {
-      await fs.writeFile(projectsPath, JSON.stringify(projectsData, null, 2));
-    }
   }
 
   // ===== INTELLIGENT HELP SYSTEM =====
