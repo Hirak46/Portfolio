@@ -75,6 +75,20 @@ interface ProfileData {
     email: string;
     url?: string;
   }>;
+  photo?: string;
+  stats?: {
+    publications: number;
+    citations: number;
+    hIndex: number;
+    i10Index: number;
+  };
+  scholarStats?: {
+    totalCitations: number;
+    citationsSince2021: number;
+    hIndex: number;
+    i10Index: number;
+    lastUpdated: string;
+  };
 }
 
 interface Publication {
@@ -105,11 +119,11 @@ interface Project {
   date: string;
 }
 
-type Section = 'profile' | 'education' | 'experience' | 'skills' | 'publications' | 'projects' | 'social' | 'awards' | 'reviews' | 'memberships' | 'certifications' | 'volunteer' | 'references';
+type Section = 'home' | 'profile' | 'education' | 'experience' | 'skills' | 'publications' | 'projects' | 'social' | 'awards' | 'reviews' | 'memberships' | 'certifications' | 'volunteer' | 'references';
 
 export default function AdminEditPanel() {
   const router = useRouter();
-  const [currentSection, setCurrentSection] = useState<Section>('profile');
+  const [currentSection, setCurrentSection] = useState<Section>('home');
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [publications, setPublications] = useState<Publication[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -260,6 +274,7 @@ export default function AdminEditPanel() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6 overflow-x-auto">
             <div className="flex gap-2 min-w-max">
               {[
+                { id: 'home', label: '🏠 Home / Stats' },
                 { id: 'profile', label: 'Profile Info' },
                 { id: 'education', label: 'Education' },
                 { id: 'experience', label: 'Work Experience' },
@@ -301,6 +316,7 @@ export default function AdminEditPanel() {
             />
           ) : (
             <>
+              {currentSection === 'home' && <HomeSection data={profileData} setData={setProfileData} />}
               {currentSection === 'profile' && <ProfileSection data={profileData} setData={setProfileData} />}
               {currentSection === 'education' && <EducationSection data={profileData} setData={setProfileData} />}
               {currentSection === 'experience' && <ExperienceSection data={profileData} setData={setProfileData} />}
@@ -316,6 +332,126 @@ export default function AdminEditPanel() {
               {currentSection === 'projects' && <ProjectsSection data={projects} setData={setProjects} />}
             </>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Home / Stats Section Component
+function HomeSection({ data, setData }: { data: ProfileData; setData: (data: ProfileData) => void }) {
+  const updateStats = (field: string, value: number) => {
+    setData({
+      ...data,
+      stats: { ...data.stats!, [field]: value },
+      scholarStats: { ...data.scholarStats!, [field === 'citations' ? 'totalCitations' : field]: value, lastUpdated: new Date().toISOString().split('T')[0] },
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">{'\ud83c\udfe0'} Home Page / Stats Customization</h2>
+
+      {/* Photo URL */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Profile Photo Path</label>
+        <input
+          type="text"
+          value={data.photo || '/Hirak.jpg'}
+          onChange={(e) => setData({ ...data, photo: e.target.value })}
+          className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="/Hirak.jpg"
+        />
+        <p className="text-xs text-gray-500 mt-1">Image must be in public/ folder (e.g., /Hirak.jpg)</p>
+      </div>
+
+      {/* Stats */}
+      <div className="border-t pt-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{'\ud83d\udcca'} Statistics (shown on homepage)</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Publications</label>
+            <input
+              type="number"
+              value={data.stats?.publications || 0}
+              onChange={(e) => updateStats('publications', parseInt(e.target.value) || 0)}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Citations</label>
+            <input
+              type="number"
+              value={data.stats?.citations || 0}
+              onChange={(e) => updateStats('citations', parseInt(e.target.value) || 0)}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">h-index</label>
+            <input
+              type="number"
+              value={data.stats?.hIndex || 0}
+              onChange={(e) => updateStats('hIndex', parseInt(e.target.value) || 0)}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">i10-index</label>
+            <input
+              type="number"
+              value={data.stats?.i10Index || 0}
+              onChange={(e) => updateStats('i10Index', parseInt(e.target.value) || 0)}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Scholar Stats */}
+      <div className="border-t pt-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{'\ud83c\udf93'} Google Scholar Stats</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Citations</label>
+            <input
+              type="number"
+              value={data.scholarStats?.totalCitations || 0}
+              onChange={(e) => setData({ ...data, scholarStats: { ...data.scholarStats!, totalCitations: parseInt(e.target.value) || 0, lastUpdated: new Date().toISOString().split('T')[0] } })}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Citations Since 2021</label>
+            <input
+              type="number"
+              value={data.scholarStats?.citationsSince2021 || 0}
+              onChange={(e) => setData({ ...data, scholarStats: { ...data.scholarStats!, citationsSince2021: parseInt(e.target.value) || 0, lastUpdated: new Date().toISOString().split('T')[0] } })}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Updated</label>
+            <input
+              type="date"
+              value={data.scholarStats?.lastUpdated || ''}
+              onChange={(e) => setData({ ...data, scholarStats: { ...data.scholarStats!, lastUpdated: e.target.value } })}
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* CV Download Info */}
+      <div className="border-t pt-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{'\ud83d\udcc4'} CV / Resume</h3>
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+          <p className="text-blue-800 dark:text-blue-200 mb-2">
+            <strong>To update your CV:</strong> Upload your PDF file as <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">Hirak.pdf</code> to the <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">public/cv/</code> folder in your GitHub repository.
+          </p>
+          <p className="text-blue-700 dark:text-blue-300 text-sm">
+            The &ldquo;Download CV&rdquo; button on the homepage links to <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">/cv/Hirak.pdf</code>
+          </p>
         </div>
       </div>
     </div>

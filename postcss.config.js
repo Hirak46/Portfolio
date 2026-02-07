@@ -13,7 +13,7 @@ module.exports = {
         'not dead',
         '> 0.2%',
       ],
-      grid: 'autoplace',
+      grid: false,
       flexbox: 'no-2009',
     },
   },

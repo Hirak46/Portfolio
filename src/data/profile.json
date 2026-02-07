@@ -6,7 +6,7 @@
   "phone": "+8801400705050",
   "location": "Batiaghata-9260, Khulna, Bangladesh",
   "photo": "/Hirak.jpg",
-  "bio": "I am currently pursuing an M.Sc. in Computer Science and Engineering at Khulna University, Bangladesh, and obtained my B.Sc. in Computer Science and Engineering from North Western University, Khulna. My research focuses on secure and privacy-aware AI for healthcare systems, with particular emphasis on federated learning, cybersecurity, robust computer vision, and defenses against data and model poisoning attacks. I have authored and co-authored 21 publications with 82 citations (h-index: 3), including journal articles, conference papers, and book chapters published in venues such as IEEE Access, Springer, CRC Press, and River Publishers.",
+  "bio": "I am currently pursuing an M.Sc. in Computer Science and Engineering at Khulna University, Bangladesh, and obtained my B.Sc. in Computer Science and Engineering from North Western University, Khulna. My research focuses on secure and privacy-aware AI for healthcare systems, with particular emphasis on federated learning, cybersecurity, robust computer vision, and defenses against data and model poisoning attacks. I have authored and co-authored 21 publications with 82 citations (h-index: 4), including journal articles, conference papers, and book chapters published in venues such as IEEE Access, Springer, CRC Press, and River Publishers.",
   "interests": [
     "Health Informatics",
     "Neuroscience",
@@ -52,13 +52,13 @@
   },  "scholarStats": {
     "totalCitations": 82,
     "citationsSince2021": 74,
-    "hIndex": 3,
+    "hIndex": 4,
     "i10Index": 3,
-    "lastUpdated": "2026-02-04"
+    "lastUpdated": "2026-02-07"
   },  "stats": {
     "publications": 21,
     "citations": 82,
-    "hIndex": 3,
+    "hIndex": 4,
     "i10Index": 3
   },
   "skills": {

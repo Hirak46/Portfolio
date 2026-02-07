@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope, FaDownload } from 'react-icons/fa';
 import { SiGooglescholar, SiOrcid, SiResearchgate } from 'react-icons/si';
 import profileData from '@/data/profile.json';
 import AnimatedCounter from './AnimatedCounter';
@@ -60,6 +60,22 @@ export default function Hero() {
             >
               {profileData.tagline}
             </motion.p>
+
+            {/* Download CV Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+            >
+              <a
+                href="/cv/Hirak.pdf"
+                download
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-purple-600 text-white font-semibold rounded-xl hover:from-primary-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                <FaDownload className="w-4 h-4" />
+                Download CV
+              </a>
+            </motion.div>
 
             {/* Stats */}
             <motion.div

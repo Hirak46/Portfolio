@@ -78,6 +78,53 @@ async function processAIInstruction(instruction: string, files: File[], applyCha
 
   const instructionLower = instruction.toLowerCase();
 
+  // ===== SMART NUMBER EXTRACTION (catch-all for flexible prompts) =====
+  // Handles: "82 citations", "citations 82", "update citations to 82", "make h-index 4", etc.
+  const numberPatterns = [
+    { regex: /(?:citation|citations)\s*(?:to|=|:|\s)\s*(\d+)/i, field: 'citations' },
+    { regex: /(\d+)\s*citation/i, field: 'citations' },
+    { regex: /h[\s-]*index\s*(?:to|=|:|\s)\s*(\d+)/i, field: 'hIndex' },
+    { regex: /(\d+)\s*h[\s-]*index/i, field: 'hIndex' },
+    { regex: /i[\s-]*10[\s-]*(?:index)?\s*(?:to|=|:|\s)\s*(\d+)/i, field: 'i10Index' },
+    { regex: /(\d+)\s*i[\s-]*10/i, field: 'i10Index' },
+    { regex: /publication[s]?\s*(?:to|=|:|\s)\s*(\d+)/i, field: 'publications' },
+    { regex: /(\d+)\s*publication/i, field: 'publications' },
+  ];
+
+  let numberChangesApplied = false;
+  for (const { regex, field } of numberPatterns) {
+    const match = instruction.match(regex);
+    if (match) {
+      const value = parseInt(match[1]);
+      if (!isNaN(value)) {
+        if (!profileData.stats) profileData.stats = { publications: 0, citations: 0, hIndex: 0, i10Index: 0 };
+        if (!profileData.scholarStats) profileData.scholarStats = { totalCitations: 0, citationsSince2021: 0, hIndex: 0, i10Index: 0, lastUpdated: '' };
+
+        (profileData.stats as any)[field] = value;
+
+        // Sync to scholarStats
+        if (field === 'citations') profileData.scholarStats.totalCitations = value;
+        if (field === 'hIndex') profileData.scholarStats.hIndex = value;
+        if (field === 'i10Index') profileData.scholarStats.i10Index = value;
+        profileData.scholarStats.lastUpdated = new Date().toISOString().split('T')[0];
+
+        // Also update bio text if it mentions the old value
+        if (field === 'citations') {
+          profileData.bio = profileData.bio.replace(/\d+\s*citations/i, `${value} citations`);
+        }
+        if (field === 'hIndex') {
+          profileData.bio = profileData.bio.replace(/h-index:\s*\d+/i, `h-index: ${value}`);
+        }
+
+        changes.push(`✓ Updated ${field} to ${value}`);
+        numberChangesApplied = true;
+      }
+    }
+  }
+  if (numberChangesApplied) {
+    filesModified.push('profile.json');
+  }
+
   // ===== ENHANCED BIO UPDATES =====
   if (instructionLower.includes('bio') || instructionLower.includes('about') || instructionLower.includes('description')) {
     // Complete replacement
@@ -453,6 +500,24 @@ async function processAIInstruction(instruction: string, files: File[], applyCha
       if (!profileData.social) profileData.social = {};
       profileData.social.scholar = scholarMatch[1];
       changes.push(`✓ Updated Google Scholar URL`);
+    }
+  }
+
+  // ===== SMART LOCATION UPDATE =====
+  if (instructionLower.includes('location') || instructionLower.includes('address') || instructionLower.includes('city')) {
+    const locMatch = instruction.match(/(?:location|address|city)\s+(?:to\s+|is\s+|=\s+)?["""']?(.+?)(?:["""']?\s*$)/i);
+    if (locMatch) {
+      profileData.location = locMatch[1].trim().replace(/^["""']|["""']$/g, '');
+      changes.push(`✓ Updated location to "${profileData.location}"`);
+    }
+  }
+
+  // ===== SMART PHOTO UPDATE =====
+  if (instructionLower.includes('photo') || instructionLower.includes('picture') || instructionLower.includes('image') || instructionLower.includes('avatar')) {
+    const photoMatch = instruction.match(/(?:photo|picture|image|avatar)\s+(?:to\s+|is\s+|=\s+)?["""']?(\/[^\s"""']+)["""']?/i);
+    if (photoMatch) {
+      profileData.photo = photoMatch[1].trim();
+      changes.push(`✓ Updated profile photo to "${profileData.photo}"`);
     }
   }
 
