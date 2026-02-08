@@ -1,28 +1,59 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope, FaDownload } from 'react-icons/fa';
-import { SiGooglescholar, SiOrcid, SiResearchgate } from 'react-icons/si';
-import profileData from '@/data/profile.json';
-import AnimatedCounter from './AnimatedCounter';
+import { motion } from "framer-motion";
+import Image from "next/image";
+import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from "react-icons/fa";
+import { SiGooglescholar, SiOrcid, SiResearchgate } from "react-icons/si";
+import profileData from "@/data/profile.json";
+import AnimatedCounter from "./AnimatedCounter";
 
 export default function Hero() {
   const socialIcons = [
-    { name: 'Google Scholar', icon: SiGooglescholar, url: profileData.social.scholar, color: 'hover:text-blue-400' },
-    { name: 'GitHub', icon: FaGithub, url: profileData.social.github, color: 'hover:text-gray-400' },
-    { name: 'LinkedIn', icon: FaLinkedin, url: profileData.social.linkedin, color: 'hover:text-blue-500' },
+    {
+      name: "Google Scholar",
+      icon: SiGooglescholar,
+      url: profileData.social.scholar,
+      color: "hover:text-blue-400",
+    },
+    {
+      name: "GitHub",
+      icon: FaGithub,
+      url: profileData.social.github,
+      color: "hover:text-gray-400",
+    },
+    {
+      name: "LinkedIn",
+      icon: FaLinkedin,
+      url: profileData.social.linkedin,
+      color: "hover:text-blue-500",
+    },
 
-    { name: 'ORCID', icon: SiOrcid, url: profileData.social.orcid, color: 'hover:text-green-500' },
-    { name: 'ResearchGate', icon: SiResearchgate, url: profileData.social.researchgate, color: 'hover:text-cyan-400' },
+    {
+      name: "ORCID",
+      icon: SiOrcid,
+      url: profileData.social.orcid,
+      color: "hover:text-green-500",
+    },
+    {
+      name: "ResearchGate",
+      icon: SiResearchgate,
+      url: profileData.social.researchgate,
+      color: "hover:text-cyan-400",
+    },
   ];
 
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16 sm:pt-20 md:pt-24">
+    <section
+      id="home"
+      className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16 sm:pt-20 md:pt-24"
+    >
       {/* Animated background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-primary-500/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-purple-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-72 sm:h-72 md:w-96 md:h-96 bg-purple-500/20 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "1s" }}
+        ></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
@@ -61,22 +92,6 @@ export default function Hero() {
               {profileData.tagline}
             </motion.p>
 
-            {/* Download CV Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.6 }}
-            >
-              <a
-                href="/cv/Hirak.pdf"
-                download
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-500 to-purple-600 text-white font-semibold rounded-xl hover:from-primary-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-              >
-                <FaDownload className="w-4 h-4" />
-                Download CV
-              </a>
-            </motion.div>
-
             {/* Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -86,27 +101,47 @@ export default function Hero() {
             >
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-primary-400">
-                  <AnimatedCounter end={profileData.stats.publications} duration={2} />
+                  <AnimatedCounter
+                    end={profileData.stats.publications}
+                    duration={2}
+                  />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">Publications</div>
+                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                  Publications
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-primary-400">
-                  <AnimatedCounter end={profileData.stats.citations} duration={2} />
+                  <AnimatedCounter
+                    end={profileData.stats.citations}
+                    duration={2}
+                  />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">Citations</div>
+                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                  Citations
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-primary-400">
-                  <AnimatedCounter end={profileData.stats.hIndex} duration={2} />
+                  <AnimatedCounter
+                    end={profileData.stats.hIndex}
+                    duration={2}
+                  />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">h-index</div>
+                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                  h-index
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-primary-400">
-                  <AnimatedCounter end={profileData.stats.i10Index} duration={2} />
+                  <AnimatedCounter
+                    end={profileData.stats.i10Index}
+                    duration={2}
+                  />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">i10-index</div>
+                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                  i10-index
+                </div>
               </div>
             </motion.div>
 

@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { GraduationCap, BookOpen, Download } from 'lucide-react';
-import profileData from '@/data/profile.json';
-import SectionTitle from './SectionTitle';
-import Image from 'next/image';
+import { motion } from "framer-motion";
+import { GraduationCap, BookOpen, Download } from "lucide-react";
+import profileData from "@/data/profile.json";
+import SectionTitle from "./SectionTitle";
+import Image from "next/image";
 
 export default function About() {
   return (
-    <section id="about" className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
+    <section
+      id="about"
+      className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8"
+    >
       <div className="max-w-7xl mx-auto">
         <SectionTitle
           title="About Me"
@@ -44,7 +47,7 @@ export default function About() {
 
               {/* Download CV Button */}
               <motion.a
-                href="/cv.pdf"
+                href="/cv/Hirak.pdf"
                 download
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -69,7 +72,7 @@ export default function About() {
                 <BookOpen className="w-6 h-6 text-primary-400" />
                 Biography
               </h3>
-              
+
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
                 {profileData.bio}
               </p>
@@ -77,7 +80,9 @@ export default function About() {
 
             {/* Research Interests */}
             <div className="glass rounded-2xl p-8">
-              <h3 className="text-xl font-bold mb-4 text-primary-400">Research Interests</h3>
+              <h3 className="text-xl font-bold mb-4 text-primary-400">
+                Research Interests
+              </h3>
               <div className="flex flex-wrap gap-3">
                 {profileData.interests.map((interest) => (
                   <motion.span
@@ -109,14 +114,20 @@ export default function About() {
                     className="relative pl-8 pb-6 border-l-2 border-primary-500/30 last:pb-0"
                   >
                     <div className="absolute left-0 top-0 w-4 h-4 rounded-full bg-primary-500 -translate-x-[9px]"></div>
-                    
+
                     <div className="space-y-2">
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {edu.degree}
                       </h4>
-                      <p className="text-primary-400 font-medium">{edu.institution}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{edu.year}</p>
-                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{edu.description}</p>
+                      <p className="text-primary-400 font-medium">
+                        {edu.institution}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {edu.year}
+                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                        {edu.description}
+                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -127,13 +138,24 @@ export default function About() {
             <div className="glass rounded-2xl p-8">
               <h3 className="text-2xl font-bold mb-6">Tools & Technologies</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {['Python', 'C/C++', 'Java', 'TensorFlow', 'PyTorch', 'MySQL', 'Node.js', 'Git'].map((skill) => (
+                {[
+                  "Python",
+                  "C/C++",
+                  "Java",
+                  "TensorFlow",
+                  "PyTorch",
+                  "MySQL",
+                  "Node.js",
+                  "Git",
+                ].map((skill) => (
                   <motion.div
                     key={skill}
                     whileHover={{ scale: 1.08, y: -5 }}
                     className="p-4 rounded-xl bg-gradient-to-br from-primary-500/10 to-purple-500/10 text-center hover:from-primary-500/20 hover:to-purple-500/20 transition-all border border-primary-500/20 hover:border-primary-500/40"
                   >
-                    <span className="font-medium text-gray-800 dark:text-gray-200">{skill}</span>
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
+                      {skill}
+                    </span>
                   </motion.div>
                 ))}
               </div>
