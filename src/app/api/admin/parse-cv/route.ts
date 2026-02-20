@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import {
+  isGitHubConfigured,
+  readFromGitHub,
+  commitToGitHub,
+} from "@/lib/github";
 
 export const dynamic = "force-dynamic";
 
@@ -47,20 +52,15 @@ export async function POST(request: NextRequest) {
     // Extract information using regex patterns
     const extractedData = extractCVData(cvText);
 
-    // Update profile.json
-    const srcDataDir = join(process.cwd(), "src", "data");
-    const publicDataDir = join(process.cwd(), "public", "data");
-    const profilePath = join(srcDataDir, "profile.json");
-
-    // Ensure directories exist
-    if (!existsSync(srcDataDir)) {
-      await mkdir(srcDataDir, { recursive: true });
+    // Read current profile (GitHub or local)
+    let currentProfile: any;
+    if (isGitHubConfigured()) {
+      const profileRaw = await readFromGitHub("src/data/profile.json");
+      currentProfile = JSON.parse(profileRaw);
+    } else {
+      const profilePath = join(process.cwd(), "src", "data", "profile.json");
+      currentProfile = JSON.parse(await readFile(profilePath, "utf-8"));
     }
-    if (!existsSync(publicDataDir)) {
-      await mkdir(publicDataDir, { recursive: true });
-    }
-
-    const currentProfile = JSON.parse(await readFile(profilePath, "utf-8"));
 
     // Merge extracted data with current profile
     const updatedProfile = {
@@ -76,12 +76,33 @@ export async function POST(request: NextRequest) {
         extractedData.reviewExperience || currentProfile.reviewExperience,
     };
 
-    // Save updated profile to both src and public directories
+    // Save updated profile
     const profileJson = JSON.stringify(updatedProfile, null, 2);
-    await Promise.all([
-      writeFile(profilePath, profileJson, "utf-8"),
-      writeFile(join(publicDataDir, "profile.json"), profileJson, "utf-8"),
-    ]);
+
+    if (isGitHubConfigured()) {
+      await commitToGitHub(
+        [
+          { path: "src/data/profile.json", content: profileJson },
+          { path: "public/data/profile.json", content: profileJson },
+        ],
+        "Update profile from CV upload",
+      );
+    } else {
+      const srcDataDir = join(process.cwd(), "src", "data");
+      const publicDataDir = join(process.cwd(), "public", "data");
+
+      if (!existsSync(srcDataDir)) {
+        await mkdir(srcDataDir, { recursive: true });
+      }
+      if (!existsSync(publicDataDir)) {
+        await mkdir(publicDataDir, { recursive: true });
+      }
+
+      await Promise.all([
+        writeFile(join(srcDataDir, "profile.json"), profileJson, "utf-8"),
+        writeFile(join(publicDataDir, "profile.json"), profileJson, "utf-8"),
+      ]);
+    }
 
     return NextResponse.json(
       {

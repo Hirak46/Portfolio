@@ -22,38 +22,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const profileJson = JSON.stringify(profile, null, 2);
-    const publicationsJson = JSON.stringify(publications, null, 2);
-    const projectsJson = JSON.stringify(projects, null, 2);
+    // Sanitize JSON: remove any undefined values and ensure valid JSON
+    const profileJson = JSON.stringify(
+      JSON.parse(JSON.stringify(profile)),
+      null,
+      2,
+    );
+    const publicationsJson = JSON.stringify(
+      JSON.parse(JSON.stringify(publications)),
+      null,
+      2,
+    );
+    const projectsJson = JSON.stringify(
+      JSON.parse(JSON.stringify(projects)),
+      null,
+      2,
+    );
 
     if (isGitHubConfigured()) {
       // On Vercel: commit to GitHub → triggers auto-redeploy
-      await commitToGitHub(
-        [
-          { path: "src/data/profile.json", content: profileJson },
-          { path: "public/data/profile.json", content: profileJson },
-          { path: "src/data/publications.json", content: publicationsJson },
-          { path: "public/data/publications.json", content: publicationsJson },
-          { path: "src/data/projects.json", content: projectsJson },
-          { path: "public/data/projects.json", content: projectsJson },
-        ],
-        "Update portfolio data via admin panel",
-      );
+      console.log("[save-data] GitHub is configured, committing to GitHub...");
+      try {
+        await commitToGitHub(
+          [
+            { path: "src/data/profile.json", content: profileJson },
+            { path: "public/data/profile.json", content: profileJson },
+            { path: "src/data/publications.json", content: publicationsJson },
+            {
+              path: "public/data/publications.json",
+              content: publicationsJson,
+            },
+            { path: "src/data/projects.json", content: projectsJson },
+            { path: "public/data/projects.json", content: projectsJson },
+          ],
+          "Update portfolio data via admin panel",
+        );
 
-      return NextResponse.json(
-        {
-          success: true,
-          message:
-            "Data saved to GitHub! Your site will auto-update in ~30 seconds.",
-        },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        console.log("[save-data] Successfully committed to GitHub");
+        return NextResponse.json(
+          {
+            success: true,
+            message:
+              "Data saved to GitHub! Your site will auto-update in ~30 seconds.",
           },
-        },
-      );
+          {
+            headers: {
+              "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            },
+          },
+        );
+      } catch (githubError) {
+        const errMsg =
+          githubError instanceof Error
+            ? githubError.message
+            : String(githubError);
+        console.error("[save-data] GitHub commit failed:", errMsg);
+        return NextResponse.json(
+          {
+            success: false,
+            error: `GitHub save failed: ${errMsg}. Please check your GITHUB_TOKEN has 'repo' or 'contents:write' permissions.`,
+          },
+          { status: 500 },
+        );
+      }
     } else {
       // Local development: write to filesystem
+      console.log("[save-data] Local mode, writing to filesystem...");
       const srcDataDir = path.join(process.cwd(), "src", "data");
       const publicDataDir = path.join(process.cwd(), "public", "data");
 
@@ -95,6 +129,7 @@ export async function POST(request: NextRequest) {
         ),
       ]);
 
+      console.log("[save-data] Successfully wrote files locally");
       return NextResponse.json(
         {
           success: true,
@@ -110,7 +145,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : "Failed to save data";
-    console.error("Error saving data:", error);
+    console.error("[save-data] Error:", error);
     return NextResponse.json(
       { success: false, error: errorMessage },
       { status: 500 },
