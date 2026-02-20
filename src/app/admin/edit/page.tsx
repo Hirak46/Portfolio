@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
+import { Save, Plus, Trash2, ArrowLeft, RefreshCw, Upload, FileText, Image as ImageIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface ProfileData {
@@ -76,6 +76,8 @@ interface ProfileData {
     url?: string;
   }>;
   photo?: string;
+  aboutPhoto?: string;
+  cvPath?: string;
   stats?: {
     publications: number;
     citations: number;
@@ -133,7 +135,8 @@ type Section =
   | "memberships"
   | "certifications"
   | "volunteer"
-  | "references";
+  | "references"
+  | "files";
 
 export default function AdminEditPanel() {
   const router = useRouter();
@@ -340,6 +343,7 @@ export default function AdminEditPanel() {
                 { id: "references", label: "References" },
                 { id: "publications", label: "Publications" },
                 { id: "projects", label: "Projects" },
+                { id: "files", label: "📁 Photos & CV" },
               ].map((section) => (
                 <button
                   key={section.id}
@@ -424,6 +428,9 @@ export default function AdminEditPanel() {
               )}
               {currentSection === "projects" && (
                 <ProjectsSection data={projects} setData={setProjects} />
+              )}
+              {currentSection === "files" && (
+                <FilesSection data={profileData} setData={setProfileData} />
               )}
             </>
           )}
@@ -621,24 +628,30 @@ function HomeSection({
       {/* CV Download Info */}
       <div className="border-t pt-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-          {"\ud83d\udcc4"} CV / Resume
+          {"\ud83d\udcc4"} CV / Resume & Photos
         </h3>
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
           <p className="text-blue-800 dark:text-blue-200 mb-2">
-            <strong>To update your CV:</strong> Upload your PDF file as{" "}
+            <strong>Manage your photos and CV:</strong> Go to the{" "}
             <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">
-              Hirak.pdf
+              📁 Photos &amp; CV
             </code>{" "}
-            to the{" "}
-            <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">
-              public/cv/
-            </code>{" "}
-            folder in your GitHub repository.
+            tab to upload, delete, or change your photos and CV.
           </p>
           <p className="text-blue-700 dark:text-blue-300 text-sm">
-            The &ldquo;Download CV&rdquo; button on the homepage links to{" "}
+            Current CV path:{" "}
             <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">
-              /cv/Hirak.pdf
+              {data.cvPath || "/cv/Hirak.pdf"}
+            </code>
+            {" | "}
+            Homepage photo:{" "}
+            <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">
+              {data.photo || "/Hirak.jpg"}
+            </code>
+            {" | "}
+            About photo:{" "}
+            <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">
+              {data.aboutPhoto || "/Abou.jpg"}
             </code>
           </p>
         </div>
@@ -2437,6 +2450,367 @@ function ReferencesSection({
     </div>
   );
 }
+
+// Files (Photos & CV) Section Component
+function FilesSection({
+  data,
+  setData,
+}: {
+  data: ProfileData;
+  setData: (data: ProfileData) => void;
+}) {
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [fileMessage, setFileMessage] = useState("");
+  const [photos, setPhotos] = useState<Array<{ name: string; path: string; size: number }>>([]);
+  const [cvFiles, setCvFiles] = useState<Array<{ name: string; path: string; size: number }>>([]);
+  const [loadingFiles, setLoadingFiles] = useState(true);
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
+
+  const fetchFiles = async () => {
+    setLoadingFiles(true);
+    try {
+      const res = await fetch("/api/admin/list-files", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const result = await res.json();
+      if (result.success) {
+        setPhotos(result.photos || []);
+        setCvFiles(result.cvFiles || []);
+      }
+    } catch (err) {
+      console.error("Failed to load files:", err);
+    }
+    setLoadingFiles(false);
+  };
+
+  const handleUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    category: "photo-home" | "photo-about" | "cv",
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(category);
+    setFileMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", category);
+
+      const res = await fetch("/api/admin/upload-file", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        setFileMessage(`✅ ${result.message}`);
+
+        // Update profile data with new file paths
+        if (category === "photo-home") {
+          setData({ ...data, photo: result.filePath });
+        } else if (category === "photo-about") {
+          setData({ ...data, aboutPhoto: result.filePath });
+        } else if (category === "cv") {
+          setData({ ...data, cvPath: result.filePath });
+        }
+
+        // Refresh file list
+        await fetchFiles();
+      } else {
+        setFileMessage(`❌ ${result.error}`);
+      }
+    } catch (err) {
+      setFileMessage(`❌ Upload failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+
+    setUploading(null);
+    // Reset file input
+    e.target.value = "";
+  };
+
+  const handleDelete = async (filePath: string, category: string) => {
+    if (!confirm(`Are you sure you want to delete ${filePath.split("/").pop()}?`)) return;
+
+    setFileMessage("");
+    try {
+      const res = await fetch("/api/admin/delete-file", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filePath, category }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        setFileMessage(`✅ ${result.message}`);
+        await fetchFiles();
+      } else {
+        setFileMessage(`❌ ${result.error}`);
+      }
+    } catch (err) {
+      setFileMessage(`❌ Delete failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  return (
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+        📁 Photos & Documents Management
+      </h2>
+
+      {fileMessage && (
+        <div
+          className={`p-3 rounded-lg ${fileMessage.includes("✅") ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}`}
+        >
+          {fileMessage}
+        </div>
+      )}
+
+      {/* Homepage Photo */}
+      <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5" />
+          Homepage Photo
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          This photo appears in the Hero section on your homepage.
+          Current: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{data.photo || "/Hirak.jpg"}</code>
+        </p>
+        {data.photo && (
+          <div className="mb-4">
+            <img
+              src={data.photo}
+              alt="Homepage photo preview"
+              className="w-32 h-32 object-cover rounded-lg border"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">
+            <Upload className="w-4 h-4" />
+            {uploading === "photo-home" ? "Uploading..." : "Upload New Photo"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleUpload(e, "photo-home")}
+              disabled={uploading !== null}
+            />
+          </label>
+          <input
+            type="text"
+            value={data.photo || "/Hirak.jpg"}
+            onChange={(e) => setData({ ...data, photo: e.target.value })}
+            className="flex-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+            placeholder="Or manually set path: /Hirak.jpg"
+          />
+        </div>
+      </div>
+
+      {/* About Section Photo */}
+      <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5" />
+          About Section Photo
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          This photo appears in the About Me section.
+          Current: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{data.aboutPhoto || "/Abou.jpg"}</code>
+        </p>
+        {(data.aboutPhoto || "/Abou.jpg") && (
+          <div className="mb-4">
+            <img
+              src={data.aboutPhoto || "/Abou.jpg"}
+              alt="About photo preview"
+              className="w-32 h-32 object-cover rounded-lg border"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer">
+            <Upload className="w-4 h-4" />
+            {uploading === "photo-about" ? "Uploading..." : "Upload New Photo"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleUpload(e, "photo-about")}
+              disabled={uploading !== null}
+            />
+          </label>
+          <input
+            type="text"
+            value={data.aboutPhoto || "/Abou.jpg"}
+            onChange={(e) => setData({ ...data, aboutPhoto: e.target.value })}
+            className="flex-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+            placeholder="Or manually set path: /Abou.jpg"
+          />
+        </div>
+      </div>
+
+      {/* CV / Resume Upload */}
+      <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <FileText className="w-5 h-5" />
+          CV / Resume (PDF)
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Upload your CV as a PDF. The &ldquo;Download CV&rdquo; button will link to this file.
+          Current: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{data.cvPath || "/cv/Hirak.pdf"}</code>
+        </p>
+
+        {/* Current CV files */}
+        {cvFiles.length > 0 && (
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current CV Files:</p>
+            <div className="space-y-2">
+              {cvFiles.map((file) => (
+                <div key={file.path} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-red-500" />
+                    <div>
+                      <p className="font-medium text-gray-800 dark:text-gray-200">{file.name}</p>
+                      <p className="text-xs text-gray-500">{formatSize(file.size)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setData({ ...data, cvPath: `/cv/${file.name}` })}
+                      className="text-sm bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 px-3 py-1 rounded hover:bg-green-200"
+                    >
+                      Use This
+                    </button>
+                    <button
+                      onClick={() => handleDelete(file.path, "cv")}
+                      className="text-red-600 hover:text-red-700 p-1"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer">
+            <Upload className="w-4 h-4" />
+            {uploading === "cv" ? "Uploading..." : "Upload CV (PDF)"}
+            <input
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={(e) => handleUpload(e, "cv")}
+              disabled={uploading !== null}
+            />
+          </label>
+          <input
+            type="text"
+            value={data.cvPath || "/cv/Hirak.pdf"}
+            onChange={(e) => setData({ ...data, cvPath: e.target.value })}
+            className="flex-1 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+            placeholder="Or manually set path: /cv/Hirak.pdf"
+          />
+        </div>
+      </div>
+
+      {/* All Photos in Repository */}
+      <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5" />
+          All Photos in Repository
+        </h3>
+
+        {loadingFiles ? (
+          <div className="flex items-center gap-2 text-gray-500">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            Loading files...
+          </div>
+        ) : photos.length === 0 ? (
+          <p className="text-gray-500">No image files found in public/ directory.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {photos.map((photo) => (
+              <div key={photo.path} className="relative group border rounded-lg overflow-hidden">
+                <img
+                  src={`/${photo.name}`}
+                  alt={photo.name}
+                  className="w-full h-32 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23ccc' width='100' height='100'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666'%3ENo Preview%3C/text%3E%3C/svg%3E";
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => setData({ ...data, photo: `/${photo.name}` })}
+                    className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
+                    title="Set as Homepage photo"
+                  >
+                    Home
+                  </button>
+                  <button
+                    onClick={() => setData({ ...data, aboutPhoto: `/${photo.name}` })}
+                    className="text-xs bg-purple-500 text-white px-2 py-1 rounded"
+                    title="Set as About photo"
+                  >
+                    About
+                  </button>
+                  <button
+                    onClick={() => handleDelete(photo.path, "photo")}
+                    className="text-xs bg-red-500 text-white px-2 py-1 rounded"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="p-2 bg-white dark:bg-gray-800">
+                  <p className="text-xs truncate text-gray-700 dark:text-gray-300">{photo.name}</p>
+                  <p className="text-xs text-gray-400">{formatSize(photo.size)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-4">
+          <button
+            onClick={fetchFiles}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh File List
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+        <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+          <strong>Note:</strong> After uploading files, click &ldquo;Preview Changes&rdquo; then &ldquo;Confirm &amp; Update Website&rdquo;
+          to save the photo/CV path settings. The file itself is uploaded immediately, but the profile data
+          (which photo to use where) needs to be saved separately.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function PreviewSection({
   profileData,
   publications,

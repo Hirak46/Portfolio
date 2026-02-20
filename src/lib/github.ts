@@ -343,3 +343,146 @@ export async function testGitHubConnection(): Promise<{
     };
   }
 }
+
+/**
+ * Upload a binary file (image, PDF, etc.) to GitHub repository.
+ * Uses base64 encoding via the Contents API.
+ */
+export async function uploadBinaryToGitHub(
+  filePath: string,
+  base64Content: string,
+  message: string,
+): Promise<void> {
+  const { token, owner, repo } = getConfig();
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    Accept: "application/vnd.github.v3+json",
+  };
+  const baseUrl = `${GITHUB_API}/repos/${owner}/${repo}`;
+
+  // Check if file already exists (need SHA for update)
+  let existingSha: string | undefined;
+  try {
+    const getRes = await fetch(`${baseUrl}/contents/${filePath}`, { headers });
+    if (getRes.ok) {
+      const existing = await getRes.json();
+      existingSha = existing.sha;
+    }
+  } catch {
+    // File doesn't exist yet
+  }
+
+  const body: Record<string, string> = {
+    message,
+    content: base64Content,
+  };
+  if (existingSha) {
+    body.sha = existingSha;
+  }
+
+  const putRes = await fetch(`${baseUrl}/contents/${filePath}`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!putRes.ok) {
+    const errMsg = await getErrorDetails(
+      putRes,
+      `Failed to upload ${filePath}`,
+    );
+    throw new Error(errMsg);
+  }
+}
+
+/**
+ * Delete a file from GitHub repository.
+ */
+export async function deleteFromGitHub(
+  filePath: string,
+  message: string,
+): Promise<void> {
+  const { token, owner, repo } = getConfig();
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    Accept: "application/vnd.github.v3+json",
+  };
+  const baseUrl = `${GITHUB_API}/repos/${owner}/${repo}`;
+
+  // Get the file SHA (required for deletion)
+  const getRes = await fetch(`${baseUrl}/contents/${filePath}`, { headers });
+  if (!getRes.ok) {
+    if (getRes.status === 404) {
+      // File doesn't exist, nothing to delete
+      return;
+    }
+    const errMsg = await getErrorDetails(
+      getRes,
+      `Failed to find ${filePath} for deletion`,
+    );
+    throw new Error(errMsg);
+  }
+  const fileData = await getRes.json();
+
+  const delRes = await fetch(`${baseUrl}/contents/${filePath}`, {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({
+      message,
+      sha: fileData.sha,
+    }),
+  });
+
+  if (!delRes.ok) {
+    const errMsg = await getErrorDetails(
+      delRes,
+      `Failed to delete ${filePath}`,
+    );
+    throw new Error(errMsg);
+  }
+}
+
+/**
+ * List files in a GitHub repository directory.
+ */
+export async function listGitHubFiles(
+  dirPath: string,
+): Promise<Array<{ name: string; path: string; size: number; type: string }>> {
+  const { token, owner, repo } = getConfig();
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github.v3+json",
+  };
+
+  const response = await fetch(
+    `${GITHUB_API}/repos/${owner}/${repo}/contents/${dirPath}`,
+    { headers, cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return []; // Directory doesn't exist
+    }
+    const errMsg = await getErrorDetails(
+      response,
+      `Failed to list files in ${dirPath}`,
+    );
+    throw new Error(errMsg);
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) {
+    return []; // Not a directory
+  }
+
+  return data
+    .filter((item: any) => item.type === "file")
+    .map((item: any) => ({
+      name: item.name,
+      path: item.path,
+      size: item.size,
+      type: item.type,
+    }));
+}

@@ -34,7 +34,7 @@ export default function About() {
                 <div className="relative glass rounded-3xl p-2 overflow-hidden">
                   <div className="w-full h-full bg-gradient-to-br from-primary-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
                     <Image
-                      src="/Abou.jpg"
+                      src={(profileData as any).aboutPhoto || "/Abou.jpg"}
                       alt="Profile"
                       width={400}
                       height={400}
@@ -47,7 +47,7 @@ export default function About() {
 
               {/* Download CV Button */}
               <motion.a
-                href="/cv/Hirak.pdf"
+                href={(profileData as any).cvPath || "/cv/Hirak.pdf"}
                 download
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
