@@ -1,63 +1,108 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, readFile } from 'fs/promises';
-import { join } from 'path';
-const pdfParse = require('pdf-parse');
+import { NextRequest, NextResponse } from "next/server";
+import { writeFile, readFile, mkdir } from "fs/promises";
+import { join } from "path";
+import { existsSync } from "fs";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('cv') as File;
+    const file = formData.get("cv") as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Parse PDF
-    let cvText = '';
-    if (file.type === 'application/pdf') {
-      const pdfData = await pdfParse(buffer);
-      cvText = pdfData.text;
+    // Parse PDF or LaTeX
+    let cvText = "";
+    if (file.type === "application/pdf") {
+      try {
+        const pdfParse = require("pdf-parse");
+        const pdfData = await pdfParse(buffer);
+        cvText = pdfData.text;
+      } catch (pdfError: any) {
+        console.error("PDF parsing error:", pdfError);
+        // Fallback: try reading as text
+        cvText = buffer.toString("utf-8");
+        if (!cvText || cvText.includes("\x00")) {
+          return NextResponse.json(
+            {
+              error:
+                "Failed to parse PDF. Make sure pdf-parse is installed: npm install pdf-parse",
+            },
+            { status: 500 },
+          );
+        }
+      }
     } else {
       // For LaTeX files
-      cvText = buffer.toString('utf-8');
+      cvText = buffer.toString("utf-8");
     }
 
     // Extract information using regex patterns
     const extractedData = extractCVData(cvText);
 
     // Update profile.json
-    const profilePath = join(process.cwd(), 'src', 'data', 'profile.json');
-    const currentProfile = JSON.parse(await readFile(profilePath, 'utf-8'));
+    const srcDataDir = join(process.cwd(), "src", "data");
+    const publicDataDir = join(process.cwd(), "public", "data");
+    const profilePath = join(srcDataDir, "profile.json");
+
+    // Ensure directories exist
+    if (!existsSync(srcDataDir)) {
+      await mkdir(srcDataDir, { recursive: true });
+    }
+    if (!existsSync(publicDataDir)) {
+      await mkdir(publicDataDir, { recursive: true });
+    }
+
+    const currentProfile = JSON.parse(await readFile(profilePath, "utf-8"));
 
     // Merge extracted data with current profile
     const updatedProfile = {
       ...currentProfile,
       ...extractedData,
       skills: extractedData.skills || currentProfile.skills,
-      certifications: extractedData.certifications || currentProfile.certifications,
+      certifications:
+        extractedData.certifications || currentProfile.certifications,
       volunteer: extractedData.volunteer || currentProfile.volunteer,
       awards: extractedData.awards || currentProfile.awards,
       memberships: extractedData.memberships || currentProfile.memberships,
-      reviewExperience: extractedData.reviewExperience || currentProfile.reviewExperience,
+      reviewExperience:
+        extractedData.reviewExperience || currentProfile.reviewExperience,
     };
 
-    // Save updated profile
-    await writeFile(profilePath, JSON.stringify(updatedProfile, null, 2));
+    // Save updated profile to both src and public directories
+    const profileJson = JSON.stringify(updatedProfile, null, 2);
+    await Promise.all([
+      writeFile(profilePath, profileJson, "utf-8"),
+      writeFile(join(publicDataDir, "profile.json"), profileJson, "utf-8"),
+    ]);
 
-    return NextResponse.json({
-      success: true,
-      message: 'CV processed successfully',
-      extractedData,
-    });
-  } catch (error) {
-    console.error('Error parsing CV:', error);
     return NextResponse.json(
-      { error: 'Failed to process CV', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      {
+        success: true,
+        message: "CV processed successfully",
+        extractedData,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error parsing CV:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to process CV",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -66,7 +111,9 @@ function extractCVData(text: string): any {
   const data: any = {};
 
   // Extract email
-  const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+  const emailMatch = text.match(
+    /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/,
+  );
   if (emailMatch) {
     data.email = emailMatch[1];
   }
@@ -78,11 +125,11 @@ function extractCVData(text: string): any {
   }
 
   // Extract name (usually appears early in CV)
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   for (let i = 0; i < Math.min(10, lines.length); i++) {
     const line = lines[i].trim();
     if (line.length > 3 && line.length < 50 && /^[A-Z]/.test(line)) {
-      if (!line.includes('@') && !line.includes('http')) {
+      if (!line.includes("@") && !line.includes("http")) {
         data.name = line;
         break;
       }
@@ -90,38 +137,44 @@ function extractCVData(text: string): any {
   }
 
   // Extract certifications
-  if (text.includes('CERTIFICATION') || text.includes('Certificate')) {
-    const certSection = text.match(/CERTIFICATION[S]?[\s\S]*?(?=\n\n[A-Z]{3,}|$)/i);
+  if (text.includes("CERTIFICATION") || text.includes("Certificate")) {
+    const certSection = text.match(
+      /CERTIFICATION[S]?[\s\S]*?(?=\n\n[A-Z]{3,}|$)/i,
+    );
     if (certSection) {
       const certs = certSection[0].match(/•\s*(.+?)(?=\n|$)/g);
       if (certs) {
-        data.certifications = certs.map(c => c.replace('•', '').trim());
+        data.certifications = certs.map((c) => c.replace("•", "").trim());
       }
     }
   }
 
   // Extract skills
-  if (text.includes('SKILL')) {
+  if (text.includes("SKILL")) {
     data.skills = {};
-    
+
     const programmingMatch = text.match(/Programming[:\s]+(.+?)(?=\n[A-Z]|$)/i);
     if (programmingMatch) {
-      data.skills.programming = programmingMatch[1].split(',').map(s => s.trim());
+      data.skills.programming = programmingMatch[1]
+        .split(",")
+        .map((s) => s.trim());
     }
 
     const languagesMatch = text.match(/Languages[:\s]+(.+?)(?=\n[A-Z]|$)/i);
     if (languagesMatch) {
-      data.skills.languages = languagesMatch[1].split(',').map(s => s.trim());
+      data.skills.languages = languagesMatch[1].split(",").map((s) => s.trim());
     }
   }
 
   // Extract volunteer experience
-  if (text.includes('VOLUNTEER')) {
-    const volSection = text.match(/VOLUNTEER[S\s\w]*?[\s\S]*?(?=\n\n[A-Z]{3,}|$)/i);
+  if (text.includes("VOLUNTEER")) {
+    const volSection = text.match(
+      /VOLUNTEER[S\s\w]*?[\s\S]*?(?=\n\n[A-Z]{3,}|$)/i,
+    );
     if (volSection) {
       const vols = volSection[0].match(/•\s*(.+?)(?=\n|$)/g);
       if (vols) {
-        data.volunteer = vols.map(v => v.replace('•', '').trim());
+        data.volunteer = vols.map((v) => v.replace("•", "").trim());
       }
     }
   }

@@ -78,7 +78,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-lg sm:text-xl md:text-2xl text-gray-400 font-light"
+              className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-light"
             >
               {profileData.title}
             </motion.p>
@@ -87,7 +87,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="text-base sm:text-lg text-gray-300 max-w-xl"
+              className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-xl"
             >
               {profileData.tagline}
             </motion.p>
@@ -106,7 +106,7 @@ export default function Hero() {
                     duration={2}
                   />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Publications
                 </div>
               </div>
@@ -117,7 +117,7 @@ export default function Hero() {
                     duration={2}
                   />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Citations
                 </div>
               </div>
@@ -128,7 +128,7 @@ export default function Hero() {
                     duration={2}
                   />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   h-index
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function Hero() {
                     duration={2}
                   />
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   i10-index
                 </div>
               </div>

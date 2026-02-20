@@ -49,25 +49,62 @@
     "linkedin": "https://www.linkedin.com/in/hirak-mondal-94b651213/",
     "orcid": "https://orcid.org/0009-0006-4756-5529",
     "researchgate": "https://www.researchgate.net/profile/Hirak-Mondal-2"
-  },  "scholarStats": {
-    "totalCitations": 82,
-    "citationsSince2021": 74,
+  },
+  "scholarStats": {
+    "totalCitations": 85,
+    "citationsSince2021": 81,
     "hIndex": 4,
+    "hIndexSince2021": 3,
     "i10Index": 3,
-    "lastUpdated": "2026-02-07"
-  },  "stats": {
-    "publications": 21,
-    "citations": 82,
+    "i10IndexSince2021": 2,
+    "lastUpdated": "2026-02-20"
+  },
+  "stats": {
+    "publications": 22,
+    "citations": 85,
     "hIndex": 4,
     "i10Index": 3
   },
   "skills": {
-    "languages": ["English (Intermediate)", "Bangla (Native)"],
-    "programming": ["Python (NumPy, SciPy, Matplotlib, Pandas)", "C", "C++", "Java", "C#", "HTML", "CSS"],
-    "platforms": ["Visual Studio", "Google Colab", "Anaconda", "PyCharm", "Web", "Windows", "Arduino"],
-    "tools": ["MySQL Workbench", "Git", "Docker"],
-    "documentation": ["Microsoft Office Suite", "LaTeX"],
-    "soft": ["Teamwork", "Leadership", "Communication", "Project Management", "Writing", "Time Management"]
+    "languages": [
+      "English (Intermediate)",
+      "Bangla (Native)"
+    ],
+    "programming": [
+      "Python (NumPy, SciPy, Matplotlib, Pandas)",
+      "C",
+      "C++",
+      "Java",
+      "C#",
+      "HTML",
+      "CSS"
+    ],
+    "platforms": [
+      "Visual Studio",
+      "Google Colab",
+      "Anaconda",
+      "PyCharm",
+      "Web",
+      "Windows",
+      "Arduino"
+    ],
+    "tools": [
+      "MySQL Workbench",
+      "Git",
+      "Docker"
+    ],
+    "documentation": [
+      "Microsoft Office Suite",
+      "LaTeX"
+    ],
+    "soft": [
+      "Teamwork",
+      "Leadership",
+      "Communication",
+      "Project Management",
+      "Writing",
+      "Time Management"
+    ]
   },
   "workExperience": [
     {

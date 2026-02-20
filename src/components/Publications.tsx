@@ -1,33 +1,42 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { FileText, ExternalLink, Quote } from 'lucide-react';
-import publications from '@/data/publications.json';
-import SectionTitle from './SectionTitle';
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { FileText, ExternalLink, Quote } from "lucide-react";
+import publications from "@/data/publications.json";
+import SectionTitle from "./SectionTitle";
 
 export default function Publications() {
-  const [filter, setFilter] = useState<'all' | 'conference' | 'journal' | 'book-chapter'>('all');
-  const [yearFilter, setYearFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<
+    "all" | "conference" | "journal" | "book-chapter"
+  >("all");
+  const [yearFilter, setYearFilter] = useState<string>("all");
 
-  const years = Array.from(new Set(publications.map(p => p.year.toString()))).sort((a, b) => Number(b) - Number(a));
+  const years = Array.from(
+    new Set(publications.map((p) => p.year.toString())),
+  ).sort((a, b) => Number(b) - Number(a));
 
-  const filteredPublications = publications.filter(pub => {
-    const typeMatch = filter === 'all' || pub.type === filter;
-    const yearMatch = yearFilter === 'all' || pub.year.toString() === yearFilter;
+  const filteredPublications = publications.filter((pub) => {
+    const typeMatch = filter === "all" || pub.type === filter;
+    const yearMatch =
+      yearFilter === "all" || pub.year.toString() === yearFilter;
     return typeMatch && yearMatch;
   });
 
   // Count publications by type
   const counts = {
     all: publications.length,
-    journal: publications.filter(p => p.type === 'journal').length,
-    conference: publications.filter(p => p.type === 'conference').length,
-    'book-chapter': publications.filter(p => p.type === 'book-chapter').length,
+    journal: publications.filter((p) => p.type === "journal").length,
+    conference: publications.filter((p) => p.type === "conference").length,
+    "book-chapter": publications.filter((p) => p.type === "book-chapter")
+      .length,
   };
 
   return (
-    <section id="publications" className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
+    <section
+      id="publications"
+      className="min-h-screen py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8"
+    >
       <div className="max-w-7xl mx-auto">
         <SectionTitle
           title="Publications"
@@ -42,21 +51,25 @@ export default function Publications() {
           className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-8 sm:mb-12 justify-center"
         >
           <div className="flex flex-wrap gap-2 justify-center">
-            {(['all', 'journal', 'conference', 'book-chapter'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilter(type)}
-                className={`px-4 sm:px-6 py-1.5 sm:py-2 text-sm sm:text-base rounded-full transition-all duration-300 ${
-                  filter === type
-                    ? 'bg-primary-500 text-white'
-                    : 'glass hover:bg-white/10'
-                }`}
-              >
-                {type === 'all' ? `All (${counts.all})` : 
-                 type === 'book-chapter' ? `Book Chapters (${counts['book-chapter']})` :
-                 `${type.charAt(0).toUpperCase() + type.slice(1)} (${counts[type]})`}
-              </button>
-            ))}
+            {(["all", "journal", "conference", "book-chapter"] as const).map(
+              (type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilter(type)}
+                  className={`px-4 sm:px-6 py-1.5 sm:py-2 text-sm sm:text-base rounded-full transition-all duration-300 ${
+                    filter === type
+                      ? "bg-primary-500 text-white"
+                      : "glass hover:bg-white/10"
+                  }`}
+                >
+                  {type === "all"
+                    ? `All (${counts.all})`
+                    : type === "book-chapter"
+                      ? `Book Chapters (${counts["book-chapter"]})`
+                      : `${type.charAt(0).toUpperCase() + type.slice(1)} (${counts[type]})`}
+                </button>
+              ),
+            )}
           </div>
 
           <select
@@ -64,9 +77,20 @@ export default function Publications() {
             onChange={(e) => setYearFilter(e.target.value)}
             className="px-4 sm:px-6 py-1.5 sm:py-2 text-sm sm:text-base rounded-full glass bg-transparent border-0 cursor-pointer hover:bg-white/10 transition-all"
           >
-            <option value="all" className="bg-gray-800">All Years</option>
-            {years.map(year => (
-              <option key={year} value={year} className="bg-gray-800">{year}</option>
+            <option
+              value="all"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              All Years
+            </option>
+            {years.map((year) => (
+              <option
+                key={year}
+                value={year}
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                {year}
+              </option>
             ))}
           </select>
         </motion.div>
@@ -81,7 +105,7 @@ export default function Publications() {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.02 }}
-              className="glass rounded-2xl p-6 hover:bg-white/5 transition-all duration-300 group"
+              className="glass rounded-2xl p-6 hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-300 group"
             >
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div className="flex-1">
@@ -91,9 +115,9 @@ export default function Publications() {
                       <h3 className="text-xl font-semibold mb-2 group-hover:text-primary-400 transition-colors">
                         {pub.title}
                       </h3>
-                      
+
                       <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
-                        {pub.authors.join(', ')}
+                        {pub.authors.join(", ")}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">

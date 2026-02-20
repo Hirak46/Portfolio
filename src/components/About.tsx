@@ -88,7 +88,7 @@ export default function About() {
                   <motion.span
                     key={interest}
                     whileHover={{ scale: 1.05 }}
-                    className="px-4 py-2 rounded-full bg-primary-500/20 text-primary-300 text-sm border border-primary-500/30 hover:bg-primary-500/30 transition-colors"
+                    className="px-4 py-2 rounded-full bg-primary-500/20 text-primary-700 dark:text-primary-300 text-sm border border-primary-500/30 hover:bg-primary-500/30 transition-colors"
                   >
                     {interest}
                   </motion.span>
@@ -98,7 +98,7 @@ export default function About() {
 
             {/* Education */}
             <div className="glass rounded-2xl p-8">
-              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
                 <GraduationCap className="w-6 h-6 text-primary-400" />
                 Education
               </h3>

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 interface SectionTitleProps {
   title: string;
@@ -24,7 +24,7 @@ export default function SectionTitle({ title, subtitle }: SectionTitleProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="text-gray-400 text-lg"
+          className="text-gray-600 dark:text-gray-400 text-lg"
         >
           {subtitle}
         </motion.p>

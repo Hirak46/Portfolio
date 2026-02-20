@@ -1,14 +1,41 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, Home, RefreshCw, Wand2, User, BookOpen, Briefcase, Code, Image as ImageIcon, Settings, Brain, Trash2, X, Paperclip, Send } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Home,
+  RefreshCw,
+  Wand2,
+  User,
+  BookOpen,
+  Briefcase,
+  Code,
+  Image as ImageIcon,
+  Settings,
+  Brain,
+  Trash2,
+  X,
+  Paperclip,
+  Send,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
-type Section = 'dashboard' | 'ai-editor' | 'profile' | 'publications' | 'projects' | 'images' | 'cv-upload';
+type Section =
+  | "dashboard"
+  | "ai-editor"
+  | "profile"
+  | "publications"
+  | "projects"
+  | "images"
+  | "cv-upload"
+  | "scholar";
 
 interface ChatMessage {
   id: number;
-  type: 'user' | 'ai';
+  type: "user" | "ai";
   content: string;
   timestamp: Date;
   applied?: boolean;
@@ -16,79 +43,128 @@ interface ChatMessage {
 
 export default function AdminPanel() {
   const router = useRouter();
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentSection, setCurrentSection] = useState<Section>('dashboard');
+  const [currentSection, setCurrentSection] = useState<Section>("dashboard");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState('');
-  
+  const [message, setMessage] = useState("");
+
   // AI Editor states
-  const [aiInstruction, setAiInstruction] = useState('');
+  const [aiInstruction, setAiInstruction] = useState("");
   const [aiProcessing, setAiProcessing] = useState(false);
-  const [aiResponse, setAiResponse] = useState('');
+  const [aiResponse, setAiResponse] = useState("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [previewAiResponse, setPreviewAiResponse] = useState<string>('');
+  const [previewAiResponse, setPreviewAiResponse] = useState<string>("");
+
+  // Scholar fetch states
+  const [scholarFetching, setScholarFetching] = useState(false);
+  const [scholarResult, setScholarResult] = useState<{
+    success: boolean;
+    message?: string;
+    error?: string;
+    changes?: string[];
+    stats?: { totalCitations: number; hIndex: number; i10Index: number };
+    publicationsFound?: number;
+  } | null>(null);
 
   // Simple password check - change this to your preferred password
-  const ADMIN_PASSWORD = 'hirak2024admin';
+  const ADMIN_PASSWORD = "hirak2024admin";
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
-      setMessage('');
+      setMessage("");
     } else {
-      setMessage('Incorrect password!');
+      setMessage("Incorrect password!");
+    }
+  };
+
+  // Fetch Google Scholar data
+  const handleScholarFetch = async () => {
+    setScholarFetching(true);
+    setScholarResult(null);
+    try {
+      const response = await fetch("/api/admin/fetch-scholar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+        body: JSON.stringify({
+          scholarId: "YEANndoAAAAJ",
+          updateProfile: true,
+          updatePublications: true,
+        }),
+      });
+      const data = await response.json();
+      setScholarResult(data);
+    } catch (error) {
+      setScholarResult({
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch Scholar data",
+      });
+    } finally {
+      setScholarFetching(false);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type === 'application/pdf' || selectedFile.name.endsWith('.tex')) {
+      if (
+        selectedFile.type === "application/pdf" ||
+        selectedFile.name.endsWith(".tex")
+      ) {
         setFile(selectedFile);
-        setMessage('');
+        setMessage("");
       } else {
-        setMessage('Please upload a PDF or LaTeX file');
+        setMessage("Please upload a PDF or LaTeX file");
       }
     }
   };
 
   const handleUpload = async () => {
     if (!file) {
-      setMessage('Please select a file first');
+      setMessage("Please select a file first");
       return;
     }
 
     setUploading(true);
-    setMessage('Processing your CV...');
+    setMessage("Processing your CV...");
 
     const formData = new FormData();
-    formData.append('cv', file);
+    formData.append("cv", file);
 
     try {
-      const response = await fetch('/api/admin/parse-cv', {
-        method: 'POST',
+      const response = await fetch("/api/admin/parse-cv", {
+        method: "POST",
         body: formData,
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('✅ CV processed successfully! Your data has been updated.');
+        setMessage("✅ CV processed successfully! Your data has been updated.");
         setFile(null);
-        
+
         // Reload the page after 2 seconds to show updated data
         setTimeout(() => {
           window.location.reload();
         }, 2000);
       } else {
-        setMessage(`❌ Error: ${data.error || 'Failed to process CV'}`);
+        setMessage(`❌ Error: ${data.error || "Failed to process CV"}`);
       }
     } catch (error) {
-      setMessage('❌ Error uploading CV. Please try again.');
+      setMessage("❌ Error uploading CV. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -97,33 +173,36 @@ export default function AdminPanel() {
   // AI Instruction Handler
   const handleAiInstruction = async (applyChanges: boolean = false) => {
     if (!aiInstruction.trim() && uploadedFiles.length === 0) {
-      setPreviewAiResponse('Please enter an instruction or upload a file');
+      setPreviewAiResponse("Please enter an instruction or upload a file");
       return;
     }
 
     setAiProcessing(true);
     const userMessage: ChatMessage = {
       id: Date.now(),
-      type: 'user',
+      type: "user",
       content: aiInstruction || `Uploaded ${uploadedFiles.length} file(s)`,
       timestamp: new Date(),
     };
-    
-    setChatHistory(prev => [...prev, userMessage]);
-    setPreviewAiResponse('🤖 AI Agent is analyzing your request...');
+
+    setChatHistory((prev) => [...prev, userMessage]);
+    setPreviewAiResponse("🤖 AI Agent is analyzing your request...");
 
     try {
       const formData = new FormData();
-      formData.append('instruction', aiInstruction);
-      formData.append('applyChanges', String(applyChanges));
-      
+      formData.append("instruction", aiInstruction);
+      formData.append("applyChanges", String(applyChanges));
+
       uploadedFiles.forEach((file, index) => {
         formData.append(`file${index}`, file);
       });
 
-      const response = await fetch('/api/admin/ai-update', {
-        method: 'POST',
+      const response = await fetch("/api/admin/ai-update", {
+        method: "POST",
         body: formData,
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
       });
 
       const data = await response.json();
@@ -131,19 +210,19 @@ export default function AdminPanel() {
       if (response.ok) {
         const aiMessage: ChatMessage = {
           id: Date.now() + 1,
-          type: 'ai',
-          content: `${data.message}\n\n📝 Changes:\n${data.changes || 'Updated successfully!'}`,
+          type: "ai",
+          content: `${data.message}\n\n📝 Changes:\n${data.changes || "Updated successfully!"}`,
           timestamp: new Date(),
           applied: applyChanges,
         };
-        
-        setChatHistory(prev => [...prev, aiMessage]);
+
+        setChatHistory((prev) => [...prev, aiMessage]);
         setPreviewAiResponse(aiMessage.content);
-        
+
         if (applyChanges) {
-          setAiInstruction('');
+          setAiInstruction("");
           setUploadedFiles([]);
-          
+
           // Reload after 3 seconds
           setTimeout(() => {
             window.location.reload();
@@ -152,21 +231,21 @@ export default function AdminPanel() {
       } else {
         const errorMessage: ChatMessage = {
           id: Date.now() + 1,
-          type: 'ai',
-          content: `❌ Error: ${data.error || 'Failed to process instruction'}`,
+          type: "ai",
+          content: `❌ Error: ${data.error || "Failed to process instruction"}`,
           timestamp: new Date(),
         };
-        setChatHistory(prev => [...prev, errorMessage]);
+        setChatHistory((prev) => [...prev, errorMessage]);
         setPreviewAiResponse(errorMessage.content);
       }
     } catch (error) {
       const errorMessage: ChatMessage = {
         id: Date.now() + 1,
-        type: 'ai',
-        content: '❌ Error processing instruction. Please try again.',
+        type: "ai",
+        content: "❌ Error processing instruction. Please try again.",
         timestamp: new Date(),
       };
-      setChatHistory(prev => [...prev, errorMessage]);
+      setChatHistory((prev) => [...prev, errorMessage]);
       setPreviewAiResponse(errorMessage.content);
     } finally {
       setAiProcessing(false);
@@ -176,19 +255,19 @@ export default function AdminPanel() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      const validFiles = files.filter(f => f.size <= 50 * 1024 * 1024); // 50MB limit
-      setUploadedFiles(prev => [...prev, ...validFiles]);
+      const validFiles = files.filter((f) => f.size <= 50 * 1024 * 1024); // 50MB limit
+      setUploadedFiles((prev) => [...prev, ...validFiles]);
     }
   };
 
   const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearChat = () => {
     setChatHistory([]);
-    setPreviewAiResponse('');
-    setAiInstruction('');
+    setPreviewAiResponse("");
+    setAiInstruction("");
     setUploadedFiles([]);
   };
 
@@ -196,7 +275,9 @@ export default function AdminPanel() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-4">
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20">
-          <h1 className="text-3xl font-bold text-white mb-6 text-center">Admin Access</h1>
+          <h1 className="text-3xl font-bold text-white mb-6 text-center">
+            Admin Access
+          </h1>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-white mb-2">Password</label>
@@ -208,9 +289,7 @@ export default function AdminPanel() {
                 placeholder="Enter admin password"
               />
             </div>
-            {message && (
-              <p className="text-red-400 text-sm">{message}</p>
-            )}
+            {message && <p className="text-red-400 text-sm">{message}</p>}
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
@@ -227,19 +306,24 @@ export default function AdminPanel() {
   }
 
   // Main menu - choose between website and update
-  if (currentSection === 'dashboard') {
+  if (currentSection === "dashboard") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 pt-8">
-            <h1 className="text-4xl font-bold text-white mb-2">AI-Powered Admin Dashboard</h1>
-            <p className="text-gray-300">Just tell the AI what you want - it handles everything automatically!</p>
+            <h1 className="text-4xl font-bold text-white mb-2">
+              AI-Powered Admin Dashboard
+            </h1>
+            <p className="text-gray-300">
+              Just tell the AI what you want - it handles everything
+              automatically!
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-6">
             {/* AI Editor - Primary Feature */}
             <button
-              onClick={() => setCurrentSection('ai-editor')}
+              onClick={() => setCurrentSection("ai-editor")}
               className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-lg hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/50 rounded-2xl p-8 transition-all transform hover:scale-105 group col-span-full"
             >
               <div className="flex items-center justify-center gap-6">
@@ -247,16 +331,23 @@ export default function AdminPanel() {
                   <Brain className="w-16 h-16 text-purple-300" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-3xl font-bold text-white mb-2">🤖 AI Agent Editor</h2>
-                  <p className="text-gray-300 text-lg">Tell AI what to change - No coding needed!</p>
-                  <p className="text-purple-300 text-sm mt-2">Example: &ldquo;Update my bio to mention I won an award&rdquo; or &ldquo;Add new publication about AI&rdquo;</p>
+                  <h2 className="text-3xl font-bold text-white mb-2">
+                    🤖 AI Agent Editor
+                  </h2>
+                  <p className="text-gray-300 text-lg">
+                    Tell AI what to change - No coding needed!
+                  </p>
+                  <p className="text-purple-300 text-sm mt-2">
+                    Example: &ldquo;Update my bio to mention I won an
+                    award&rdquo; or &ldquo;Add new publication about AI&rdquo;
+                  </p>
                 </div>
               </div>
             </button>
 
             {/* Go to Website */}
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push("/")}
               className="bg-white/10 backdrop-blur-lg hover:bg-white/20 border border-white/20 rounded-2xl p-6 transition-all transform hover:scale-105 group"
             >
               <div className="flex flex-col items-center text-center space-y-4">
@@ -264,15 +355,19 @@ export default function AdminPanel() {
                   <Home className="w-10 h-10 text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">View Website</h2>
-                  <p className="text-gray-300 text-sm">See your live portfolio</p>
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    View Website
+                  </h2>
+                  <p className="text-gray-300 text-sm">
+                    See your live portfolio
+                  </p>
                 </div>
               </div>
             </button>
 
             {/* Manual Edit - Section by Section */}
             <button
-              onClick={() => router.push('/admin/edit')}
+              onClick={() => router.push("/admin/edit")}
               className="bg-white/10 backdrop-blur-lg hover:bg-white/20 border border-white/20 rounded-2xl p-6 transition-all transform hover:scale-105 group"
             >
               <div className="flex flex-col items-center text-center space-y-4">
@@ -280,15 +375,19 @@ export default function AdminPanel() {
                   <User className="w-10 h-10 text-green-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">📝 Manual Edit</h2>
-                  <p className="text-gray-300 text-sm">Edit CV section by section</p>
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    📝 Manual Edit
+                  </h2>
+                  <p className="text-gray-300 text-sm">
+                    Edit CV section by section
+                  </p>
                 </div>
               </div>
             </button>
 
             {/* CV Upload */}
             <button
-              onClick={() => setCurrentSection('cv-upload')}
+              onClick={() => setCurrentSection("cv-upload")}
               className="bg-white/10 backdrop-blur-lg hover:bg-white/20 border border-white/20 rounded-2xl p-6 transition-all transform hover:scale-105 group"
             >
               <div className="flex flex-col items-center text-center space-y-4">
@@ -296,8 +395,31 @@ export default function AdminPanel() {
                   <Upload className="w-10 h-10 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">Upload CV</h2>
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    Upload CV
+                  </h2>
                   <p className="text-gray-300 text-sm">Auto-update from CV</p>
+                </div>
+              </div>
+            </button>
+
+            {/* Google Scholar Sync */}
+            <button
+              onClick={() => setCurrentSection("scholar")}
+              className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-lg hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/50 rounded-2xl p-6 transition-all transform hover:scale-105 group col-span-full"
+            >
+              <div className="flex items-center justify-center gap-6">
+                <div className="bg-cyan-500/30 p-4 rounded-full group-hover:bg-cyan-500/40 transition-colors">
+                  <BookOpen className="w-10 h-10 text-cyan-300" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-white mb-1">
+                    📚 Google Scholar Sync
+                  </h2>
+                  <p className="text-gray-300 text-sm">
+                    Auto-fetch citations, h-index & publications from your
+                    Scholar profile
+                  </p>
                 </div>
               </div>
             </button>
@@ -317,14 +439,14 @@ export default function AdminPanel() {
   }
 
   // AI Editor Section
-  if (currentSection === 'ai-editor') {
+  if (currentSection === "ai-editor") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-8">
         <div className="max-w-5xl mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/30">
             <div className="flex items-center justify-between mb-8">
               <button
-                onClick={() => setCurrentSection('dashboard')}
+                onClick={() => setCurrentSection("dashboard")}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 ← Back to Dashboard
@@ -357,20 +479,20 @@ export default function AdminPanel() {
                       Clear All
                     </button>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {chatHistory.map((msg) => (
                       <div
                         key={msg.id}
                         className={`p-3 rounded-lg ${
-                          msg.type === 'user'
-                            ? 'bg-blue-500/20 border border-blue-500/30 ml-8'
-                            : 'bg-purple-500/20 border border-purple-500/30 mr-8'
+                          msg.type === "user"
+                            ? "bg-blue-500/20 border border-blue-500/30 ml-8"
+                            : "bg-purple-500/20 border border-purple-500/30 mr-8"
                         }`}
                       >
                         <div className="flex items-start justify-between mb-1">
                           <span className="text-xs text-gray-400">
-                            {msg.type === 'user' ? '👤 You' : '🤖 AI Agent'}
+                            {msg.type === "user" ? "👤 You" : "🤖 AI Agent"}
                           </span>
                           <span className="text-xs text-gray-500">
                             {msg.timestamp.toLocaleTimeString()}
@@ -380,7 +502,9 @@ export default function AdminPanel() {
                           {msg.content}
                         </pre>
                         {msg.applied && (
-                          <div className="mt-2 text-xs text-green-400">✅ Changes Applied</div>
+                          <div className="mt-2 text-xs text-green-400">
+                            ✅ Changes Applied
+                          </div>
                         )}
                       </div>
                     ))}
@@ -396,17 +520,31 @@ export default function AdminPanel() {
                 </h2>
                 <div className="grid md:grid-cols-2 gap-4 text-gray-300 text-sm">
                   <div>
-                    <p className="font-semibold text-purple-300 mb-2">✨ Example Instructions:</p>
+                    <p className="font-semibold text-purple-300 mb-2">
+                      ✨ Example Instructions:
+                    </p>
                     <ul className="space-y-1 ml-4">
-                      <li>• &ldquo;Update my bio to mention I&apos;m an AI researcher&rdquo;</li>
+                      <li>
+                        • &ldquo;Update my bio to mention I&apos;m an AI
+                        researcher&rdquo;
+                      </li>
                       <li>• &ldquo;Add a new publication titled...&rdquo;</li>
-                      <li>• &ldquo;Change my email to newmail@example.com&rdquo;</li>
-                      <li>• &ldquo;Add Python and TensorFlow to my skills&rdquo;</li>
-                      <li>• &ldquo;Update citation count for TumorGANet to 50&rdquo;</li>
+                      <li>
+                        • &ldquo;Change my email to newmail@example.com&rdquo;
+                      </li>
+                      <li>
+                        • &ldquo;Add Python and TensorFlow to my skills&rdquo;
+                      </li>
+                      <li>
+                        • &ldquo;Update citation count for TumorGANet to
+                        50&rdquo;
+                      </li>
                     </ul>
                   </div>
                   <div>
-                    <p className="font-semibold text-purple-300 mb-2">🎯 What AI Can Do:</p>
+                    <p className="font-semibold text-purple-300 mb-2">
+                      🎯 What AI Can Do:
+                    </p>
                     <ul className="space-y-1 ml-4">
                       <li>• Edit profile information</li>
                       <li>• Add/update publications</li>
@@ -428,7 +566,7 @@ export default function AdminPanel() {
                     💡 Unlimited chat • Upload files up to 50MB
                   </span>
                 </div>
-                
+
                 <textarea
                   value={aiInstruction}
                   onChange={(e) => setAiInstruction(e.target.value)}
@@ -457,7 +595,7 @@ export default function AdminPanel() {
                       Click to upload files or screenshots (Max 50MB each)
                     </span>
                   </label>
-                  
+
                   {/* Uploaded Files */}
                   {uploadedFiles.length > 0 && (
                     <div className="mt-4 space-y-2">
@@ -492,7 +630,10 @@ export default function AdminPanel() {
                   {/* Preview Button */}
                   <button
                     onClick={() => handleAiInstruction(false)}
-                    disabled={aiProcessing || (!aiInstruction.trim() && uploadedFiles.length === 0)}
+                    disabled={
+                      aiProcessing ||
+                      (!aiInstruction.trim() && uploadedFiles.length === 0)
+                    }
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold py-4 rounded-lg transition-all flex items-center justify-center gap-2 text-lg"
                   >
                     {aiProcessing ? (
@@ -511,7 +652,10 @@ export default function AdminPanel() {
                   {/* Apply Button */}
                   <button
                     onClick={() => handleAiInstruction(true)}
-                    disabled={aiProcessing || (!aiInstruction.trim() && uploadedFiles.length === 0)}
+                    disabled={
+                      aiProcessing ||
+                      (!aiInstruction.trim() && uploadedFiles.length === 0)
+                    }
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 rounded-lg transition-all flex items-center justify-center gap-2 text-lg"
                   >
                     {aiProcessing ? (
@@ -531,11 +675,15 @@ export default function AdminPanel() {
 
               {/* AI Response Preview */}
               {previewAiResponse && (
-                <div className={`p-6 rounded-lg ${previewAiResponse.includes('✅') ? 'bg-green-500/20 border border-green-500/50' : previewAiResponse.includes('❌') ? 'bg-red-500/20 border border-red-500/50' : 'bg-blue-500/20 border border-blue-500/50'}`}>
+                <div
+                  className={`p-6 rounded-lg ${previewAiResponse.includes("✅") ? "bg-green-500/20 border border-green-500/50" : previewAiResponse.includes("❌") ? "bg-red-500/20 border border-red-500/50" : "bg-blue-500/20 border border-blue-500/50"}`}
+                >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-white font-semibold">Latest Response:</h3>
+                    <h3 className="text-white font-semibold">
+                      Latest Response:
+                    </h3>
                     <button
-                      onClick={() => setPreviewAiResponse('')}
+                      onClick={() => setPreviewAiResponse("")}
                       className="text-gray-400 hover:text-white"
                     >
                       <X className="w-5 h-5" />
@@ -549,7 +697,9 @@ export default function AdminPanel() {
 
               {/* Quick Actions - Now at bottom */}
               <div className="bg-white/5 rounded-lg p-6">
-                <h3 className="text-white font-semibold mb-4">Quick AI Commands:</h3>
+                <h3 className="text-white font-semibold mb-4">
+                  Quick AI Commands:
+                </h3>
                 <div className="grid md:grid-cols-2 gap-3">
                   {[
                     "Update citation count from Google Scholar",
@@ -575,14 +725,14 @@ export default function AdminPanel() {
   }
 
   // Profile Editor Section
-  if (currentSection === 'profile') {
+  if (currentSection === "profile") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 p-8">
         <div className="max-w-5xl mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
             <div className="flex items-center justify-between mb-8">
               <button
-                onClick={() => setCurrentSection('dashboard')}
+                onClick={() => setCurrentSection("dashboard")}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 ← Back to Dashboard
@@ -597,14 +747,17 @@ export default function AdminPanel() {
             </div>
 
             <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-6 mb-6">
-              <h2 className="text-white font-semibold mb-3">💡 Pro Tip: Use AI Editor Instead!</h2>
+              <h2 className="text-white font-semibold mb-3">
+                💡 Pro Tip: Use AI Editor Instead!
+              </h2>
               <p className="text-gray-300 text-sm mb-3">
-                Instead of manual editing, just tell the AI what you want to change:
+                Instead of manual editing, just tell the AI what you want to
+                change:
               </p>
               <button
                 onClick={() => {
-                  setCurrentSection('ai-editor');
-                  setAiInstruction('Update my profile information: ');
+                  setCurrentSection("ai-editor");
+                  setAiInstruction("Update my profile information: ");
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors"
               >
@@ -613,7 +766,8 @@ export default function AdminPanel() {
             </div>
 
             <p className="text-gray-400 text-center">
-              Manual editing coming soon. For now, use the AI Editor for instant updates!
+              Manual editing coming soon. For now, use the AI Editor for instant
+              updates!
             </p>
           </div>
         </div>
@@ -622,117 +776,277 @@ export default function AdminPanel() {
   }
 
   // CV Upload panel
-  if (currentSection === 'cv-upload') {
+  if (currentSection === "cv-upload") {
     return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-          <div className="flex items-center justify-between mb-8">
-            <button
-              onClick={() => {
-                setCurrentSection('dashboard');
-                setFile(null);
-                setMessage('');
-              }}
-              className="text-gray-300 hover:text-white transition-colors"
-            >
-              ← Back to Dashboard
-            </button>
-            <h1 className="text-3xl font-bold text-white">CV Upload & Auto-Update</h1>
-            <button
-              onClick={() => setIsAuthenticated(false)}
-              className="text-red-400 hover:text-red-300 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
-              <h2 className="text-white font-semibold mb-2 flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                How it works:
-              </h2>
-              <ul className="text-gray-300 text-sm space-y-1 ml-7">
-                <li>• Upload your CV (PDF or LaTeX format)</li>
-                <li>• AI will extract all information automatically</li>
-                <li>• Your website data will be updated instantly</li>
-                <li>• Publications, projects, and profile info will sync</li>
-              </ul>
-            </div>
-
-            <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center">
-              <Upload className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-              <input
-                type="file"
-                accept=".pdf,.tex"
-                onChange={handleFileChange}
-                className="hidden"
-                id="cv-upload"
-              />
-              <label
-                htmlFor="cv-upload"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg cursor-pointer transition-colors"
-              >
-                Select CV File
-              </label>
-              {file && (
-                <p className="text-green-400 mt-4">
-                  Selected: {file.name}
-                </p>
-              )}
-            </div>
-
-            {file && (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+            <div className="flex items-center justify-between mb-8">
               <button
-                onClick={handleUpload}
-                disabled={uploading}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold py-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                onClick={() => {
+                  setCurrentSection("dashboard");
+                  setFile(null);
+                  setMessage("");
+                }}
+                className="text-gray-300 hover:text-white transition-colors"
               >
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5" />
-                    Upload & Update Website
-                  </>
-                )}
+                ← Back to Dashboard
               </button>
-            )}
-
-            {message && (
-              <div className={`p-4 rounded-lg ${message.includes('✅') ? 'bg-green-500/20 border border-green-500/50' : 'bg-red-500/20 border border-red-500/50'}`}>
-                <p className="text-white">{message}</p>
-              </div>
-            )}
-
-            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
-              <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5" />
-                Security Note:
-              </h3>
-              <p className="text-gray-300 text-sm">
-                This admin panel is only accessible to you. Website visitors cannot see or access this page.
-                Your password is stored locally and is not shared with anyone.
-              </p>
+              <h1 className="text-3xl font-bold text-white">
+                CV Upload & Auto-Update
+              </h1>
+              <button
+                onClick={() => setIsAuthenticated(false)}
+                className="text-red-400 hover:text-red-300 transition-colors"
+              >
+                Logout
+              </button>
             </div>
 
-            <div className="bg-white/5 rounded-lg p-4">
-              <h3 className="text-white font-semibold mb-3">Current Password:</h3>
-              <code className="text-blue-400 bg-black/30 px-3 py-1 rounded">
-                {ADMIN_PASSWORD}
-              </code>
-              <p className="text-gray-400 text-sm mt-2">
-                Change this in: <code className="text-xs">src/app/admin/page.tsx</code>
-              </p>
+            <div className="space-y-6">
+              <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
+                <h2 className="text-white font-semibold mb-2 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  How it works:
+                </h2>
+                <ul className="text-gray-300 text-sm space-y-1 ml-7">
+                  <li>• Upload your CV (PDF or LaTeX format)</li>
+                  <li>• AI will extract all information automatically</li>
+                  <li>• Your website data will be updated instantly</li>
+                  <li>• Publications, projects, and profile info will sync</li>
+                </ul>
+              </div>
+
+              <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center">
+                <Upload className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+                <input
+                  type="file"
+                  accept=".pdf,.tex"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="cv-upload"
+                />
+                <label
+                  htmlFor="cv-upload"
+                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg cursor-pointer transition-colors"
+                >
+                  Select CV File
+                </label>
+                {file && (
+                  <p className="text-green-400 mt-4">Selected: {file.name}</p>
+                )}
+              </div>
+
+              {file && (
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold py-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      Upload & Update Website
+                    </>
+                  )}
+                </button>
+              )}
+
+              {message && (
+                <div
+                  className={`p-4 rounded-lg ${message.includes("✅") ? "bg-green-500/20 border border-green-500/50" : "bg-red-500/20 border border-red-500/50"}`}
+                >
+                  <p className="text-white">{message}</p>
+                </div>
+              )}
+
+              <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
+                <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5" />
+                  Security Note:
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  This admin panel is only accessible to you. Website visitors
+                  cannot see or access this page. Your password is stored
+                  locally and is not shared with anyone.
+                </p>
+              </div>
+
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-white font-semibold mb-3">
+                  Current Password:
+                </h3>
+                <code className="text-blue-400 bg-black/30 px-3 py-1 rounded">
+                  {ADMIN_PASSWORD}
+                </code>
+                <p className="text-gray-400 text-sm mt-2">
+                  Change this in:{" "}
+                  <code className="text-xs">src/app/admin/page.tsx</code>
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  // Google Scholar Sync Section
+  if (currentSection === "scholar") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-cyan-900 to-gray-900 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+            <div className="flex items-center justify-between mb-8">
+              <button
+                onClick={() => {
+                  setCurrentSection("dashboard");
+                  setScholarResult(null);
+                }}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                ← Back to Dashboard
+              </button>
+              <h1 className="text-3xl font-bold text-white">
+                📚 Google Scholar Sync
+              </h1>
+              <button
+                onClick={() => setIsAuthenticated(false)}
+                className="text-red-400 hover:text-red-300 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-cyan-500/20 border border-cyan-500/50 rounded-lg p-4">
+                <h2 className="text-white font-semibold mb-2 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
+                  How it works:
+                </h2>
+                <ul className="text-gray-300 text-sm space-y-1 ml-7">
+                  <li>• Fetches your latest stats from Google Scholar</li>
+                  <li>• Updates citation count, h-index, and i10-index</li>
+                  <li>• Syncs new publications automatically</li>
+                  <li>• Updates citation counts for existing publications</li>
+                </ul>
+              </div>
+
+              <div className="bg-white/5 rounded-lg p-6 text-center">
+                <p className="text-gray-300 mb-2">
+                  Your Google Scholar Profile:
+                </p>
+                <a
+                  href="https://scholar.google.com/citations?user=YEANndoAAAAJ&hl=en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-400 hover:text-cyan-300 underline text-sm break-all"
+                >
+                  https://scholar.google.com/citations?user=YEANndoAAAAJ&hl=en
+                </a>
+              </div>
+
+              <button
+                onClick={handleScholarFetch}
+                disabled={scholarFetching}
+                className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 text-white font-semibold py-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {scholarFetching ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    Fetching from Google Scholar...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-5 h-5" />
+                    Fetch & Update from Google Scholar
+                  </>
+                )}
+              </button>
+
+              {scholarResult && (
+                <div
+                  className={`p-6 rounded-lg ${
+                    scholarResult.success
+                      ? "bg-green-500/20 border border-green-500/50"
+                      : "bg-red-500/20 border border-red-500/50"
+                  }`}
+                >
+                  {scholarResult.success ? (
+                    <div className="space-y-3">
+                      <p className="text-green-400 font-semibold text-lg">
+                        ✅ {scholarResult.message}
+                      </p>
+                      {scholarResult.stats && (
+                        <div className="grid grid-cols-3 gap-4 mt-4">
+                          <div className="bg-white/10 rounded-lg p-4 text-center">
+                            <p className="text-3xl font-bold text-white">
+                              {scholarResult.stats.totalCitations}
+                            </p>
+                            <p className="text-gray-400 text-sm">Citations</p>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-4 text-center">
+                            <p className="text-3xl font-bold text-white">
+                              {scholarResult.stats.hIndex}
+                            </p>
+                            <p className="text-gray-400 text-sm">h-index</p>
+                          </div>
+                          <div className="bg-white/10 rounded-lg p-4 text-center">
+                            <p className="text-3xl font-bold text-white">
+                              {scholarResult.stats.i10Index}
+                            </p>
+                            <p className="text-gray-400 text-sm">i10-index</p>
+                          </div>
+                        </div>
+                      )}
+                      {scholarResult.publicationsFound !== undefined && (
+                        <p className="text-gray-300 text-sm">
+                          📄 {scholarResult.publicationsFound} publications
+                          found on Scholar
+                        </p>
+                      )}
+                      {scholarResult.changes &&
+                        scholarResult.changes.length > 0 && (
+                          <div className="mt-3 space-y-1">
+                            <p className="text-white font-semibold">Changes:</p>
+                            {scholarResult.changes.map(
+                              (change: string, i: number) => (
+                                <p key={i} className="text-gray-300 text-sm">
+                                  {change}
+                                </p>
+                              ),
+                            )}
+                          </div>
+                        )}
+                    </div>
+                  ) : (
+                    <p className="text-red-400">
+                      ❌ {scholarResult.error || "Failed to fetch data"}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
+                <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5" />
+                  Note:
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  Google Scholar may rate-limit requests. If fetching fails,
+                  wait a few minutes and try again. Your Scholar profile must be
+                  public for this to work.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 

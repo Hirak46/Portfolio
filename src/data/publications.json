@@ -2,10 +2,20 @@
   {
     "id": "1",
     "title": "TumorGANet: A Transfer Learning and Generative Adversarial Network-based Data Augmentation Model for Brain Tumor Classification",
-    "authors": ["Anindya Nag", "Hirak Mondal", "Md Mehedi Hassan", "Taher Al-Shehari", "Mohammed Kadrie", "Muna Al-Razgan", "Taha Alfakih", "Sujit Biswas", "Anupam Kumar Bairagi"],
+    "authors": [
+      "Anindya Nag",
+      "Hirak Mondal",
+      "Md Mehedi Hassan",
+      "Taher Al-Shehari",
+      "Mohammed Kadrie",
+      "Muna Al-Razgan",
+      "Taha Alfakih",
+      "Sujit Biswas",
+      "Anupam Kumar Bairagi"
+    ],
     "venue": "IEEE Access",
     "year": 2024,
-    "citations": 49,
+    "citations": 52,
     "pdf": "https://ieeexplore.ieee.org/abstract/document/10600471",
     "doi": "10.1109/ACCESS.2024.10600471",
     "abstract": "A Transfer Learning and Generative Adversarial Network-based Data Augmentation Model for Brain Tumor Classification.",
@@ -15,7 +25,14 @@
   {
     "id": "2",
     "title": "Exploring Deep Learning for Apple Leaf Disease Detection with Explainable AI",
-    "authors": ["Swan Mollick", "Hirak Mondal", "Md. Abul Ala Walid", "Md. Mahedi Hasan", "M. Raihan", "Anupam Kumar Bairagi"],
+    "authors": [
+      "Swan Mollick",
+      "Hirak Mondal",
+      "Md. Abul Ala Walid",
+      "Md. Mahedi Hasan",
+      "M. Raihan",
+      "Anupam Kumar Bairagi"
+    ],
     "venue": "International Conference on Quantum Photonics, Artificial Intelligence, and Networking (QPAIN)",
     "year": 2025,
     "citations": 0,
@@ -28,7 +45,16 @@
   {
     "id": "3",
     "title": "Enhanced Interpretability in Depression Classification with the Use of Machine Learning Models with Explainable AI",
-    "authors": ["Hirak Mondal", "Kamrul Golder", "Towfeka Benta Towhid", "Bushra Jamil", "Anindya Nag", "Anupam Tarafder", "Anindya Mozumder", "Md Asaduzzaman"],
+    "authors": [
+      "Hirak Mondal",
+      "Kamrul Golder",
+      "Towfeka Benta Towhid",
+      "Bushra Jamil",
+      "Anindya Nag",
+      "Anupam Tarafder",
+      "Anindya Mozumder",
+      "Md Asaduzzaman"
+    ],
     "venue": "International Conference on Electrical, Computer and Communication Engineering (ECCE)",
     "year": 2025,
     "citations": 0,
@@ -41,7 +67,14 @@
   {
     "id": "4",
     "title": "EmotionRF: Enhancing Emotion Classification from EEG Signals Using Machine Learning with Explainable AI",
-    "authors": ["Kamrul Golder", "Anindya Nag", "Fahim Faisal Tarun", "Hirak Mondal", "Md. Mehedi Hassan", "Asif Karim"],
+    "authors": [
+      "Kamrul Golder",
+      "Anindya Nag",
+      "Fahim Faisal Tarun",
+      "Hirak Mondal",
+      "Md. Mehedi Hassan",
+      "Asif Karim"
+    ],
     "venue": "27th International Conference on Computer and Information Technology (ICCIT)",
     "year": 2024,
     "citations": 1,
@@ -54,7 +87,14 @@
   {
     "id": "5",
     "title": "Emotion Decoding: An Extensive Examination of Electroencephalogram Signals Using Explainable Machine Learning",
-    "authors": ["Anindya Nag", "Hirak Mondal", "Sheikh Ridwan Raihan Kabir", "Md. Rabiul Islam", "Md. Estiak Ahmed", "S M Hasan Jamil"],
+    "authors": [
+      "Anindya Nag",
+      "Hirak Mondal",
+      "Sheikh Ridwan Raihan Kabir",
+      "Md. Rabiul Islam",
+      "Md. Estiak Ahmed",
+      "S M Hasan Jamil"
+    ],
     "venue": "6th International Conference on Electrical Engineering and Information & Communication Technology (ICEEICT)",
     "year": 2024,
     "citations": 15,
@@ -68,7 +108,13 @@
   {
     "id": "6",
     "title": "Identification of Lung Cancer Using Particle Swarm Optimization and Machine Learning Technique",
-    "authors": ["Sheikh Ridwan Raihan Kabir", "Hirak Mondal", "Anindya Nag", "S. M. Hasan Jamil", "Piya Das"],
+    "authors": [
+      "Sheikh Ridwan Raihan Kabir",
+      "Hirak Mondal",
+      "Anindya Nag",
+      "S. M. Hasan Jamil",
+      "Piya Das"
+    ],
     "venue": "Trends in Electronics and Health Informatics (TEHI 2023), Springer",
     "year": 2024,
     "citations": 10,
@@ -81,7 +127,12 @@
   {
     "id": "7",
     "title": "Graph Neural Networks for Neurological Disorders",
-    "authors": ["Teresa Jency Bala", "Hirak Mondal", "Akash Adhikary", "Anindya Nag"],
+    "authors": [
+      "Teresa Jency Bala",
+      "Hirak Mondal",
+      "Akash Adhikary",
+      "Anindya Nag"
+    ],
     "venue": "Practical Brain: Applications of Cognitive Neuroscience in Various Sectors, Springer",
     "year": 2025,
     "citations": 0,
@@ -93,7 +144,12 @@
   {
     "id": "8",
     "title": "Unlocking Neural Pathways: Large Language Models Pioneering Innovative Treatments in Neurodegenerative Diseases",
-    "authors": ["Teresa Jency Bala", "Hirak Mondal", "Akash Adhikary", "Anindya Nag"],
+    "authors": [
+      "Teresa Jency Bala",
+      "Hirak Mondal",
+      "Akash Adhikary",
+      "Anindya Nag"
+    ],
     "venue": "Generative AI in Neurology: Advancing Neurodegenerative Disease Treatment, CRC Press",
     "year": 2025,
     "citations": 0,
@@ -105,7 +161,13 @@
   {
     "id": "9",
     "title": "The Generative AI Revolution in Neurodegenerative Disease Research: Navigating Challenges and Embracing Opportunities",
-    "authors": ["Ayontika Das", "Hirak Mondal", "Teresa Jency Bala", "Akash Adhikary", "Anindya Nag"],
+    "authors": [
+      "Ayontika Das",
+      "Hirak Mondal",
+      "Teresa Jency Bala",
+      "Akash Adhikary",
+      "Anindya Nag"
+    ],
     "venue": "Generative AI in Neurology: Advancing Neurodegenerative Disease Treatment, CRC Press",
     "year": 2025,
     "citations": 0,
@@ -117,7 +179,13 @@
   {
     "id": "10",
     "title": "Big Data-Powered IoT Architectures for Smart Healthcare: A Comprehensive Review",
-    "authors": ["Ayontika Das", "Hirak Mondal", "Tahsin Ahmed Chowdhury", "Anindya Nag", "Pranto Bosu"],
+    "authors": [
+      "Ayontika Das",
+      "Hirak Mondal",
+      "Tahsin Ahmed Chowdhury",
+      "Anindya Nag",
+      "Pranto Bosu"
+    ],
     "venue": "Feature Fusion for Next-Generation AI: Building Intelligent Solutions from Medical Data, Springer",
     "year": 2025,
     "citations": 0,
@@ -129,7 +197,14 @@
   {
     "id": "11",
     "title": "Meta-heuristic Algorithms for High-Dimensional Feature Selection: A Systematic Review",
-    "authors": ["Ayontika Das", "Swan Mollick", "Hirak Mondal", "Teresa Jency Bala", "Anindya Nag", "Anindita Guho"],
+    "authors": [
+      "Ayontika Das",
+      "Swan Mollick",
+      "Hirak Mondal",
+      "Teresa Jency Bala",
+      "Anindya Nag",
+      "Anindita Guho"
+    ],
     "venue": "Feature Fusion for Next-Generation AI: Building Intelligent Solutions from Medical Data, Springer",
     "year": 2025,
     "citations": 0,
@@ -141,7 +216,13 @@
   {
     "id": "12",
     "title": "Implementation of Blockchain Technology in Feature Selection",
-    "authors": ["Teresa Jency Bala", "Akash Adhikary", "Hirak Mondal", "Anindya Nag", "Sayeda Mayesha Yousuf"],
+    "authors": [
+      "Teresa Jency Bala",
+      "Akash Adhikary",
+      "Hirak Mondal",
+      "Anindya Nag",
+      "Sayeda Mayesha Yousuf"
+    ],
     "venue": "Feature Fusion for Next-Generation AI: Building Intelligent Solutions from Medical Data, Springer",
     "year": 2025,
     "citations": 0,
@@ -153,7 +234,14 @@
   {
     "id": "13",
     "title": "Enhancing IoT Security: A Machine Learning Approach to Mitigate Diverse Attack Vectors",
-    "authors": ["Irin Sultana", "Hirak Mondal", "Md. Azizul Islam", "Swan Mollick", "Teresa Jency Bala", "Anindya Nag"],
+    "authors": [
+      "Irin Sultana",
+      "Hirak Mondal",
+      "Md. Azizul Islam",
+      "Swan Mollick",
+      "Teresa Jency Bala",
+      "Anindya Nag"
+    ],
     "venue": "Next-Generation Data-Driven Business 4.0 using the Internet of Things, Blockchain, and Interconnected Devices, CRC Press",
     "year": 2025,
     "citations": 0,
@@ -165,7 +253,12 @@
   {
     "id": "14",
     "title": "Interpreting Electroencephalogram Brain Signals: Insights from AI-driven Analysis",
-    "authors": ["Hirak Mondal", "Anindya Nag", "Md. Mushfiqur Rahman", "Anupam Kumar Bairagi"],
+    "authors": [
+      "Hirak Mondal",
+      "Anindya Nag",
+      "Md. Mushfiqur Rahman",
+      "Anupam Kumar Bairagi"
+    ],
     "venue": "Brain Networks in Neuroscience: Personalization Unveiled Via Artificial Intelligence, River Publishers",
     "year": 2025,
     "citations": 0,
@@ -177,7 +270,12 @@
   {
     "id": "15",
     "title": "Brain Network Dynamics: Implications for Health and Disease",
-    "authors": ["Tamanna Haque Ritu", "Hirak Mondal", "Anindya Nag", "Riya Sil"],
+    "authors": [
+      "Tamanna Haque Ritu",
+      "Hirak Mondal",
+      "Anindya Nag",
+      "Riya Sil"
+    ],
     "venue": "Brain Networks in Neuroscience: Personalization Unveiled Via Artificial Intelligence, River Publishers",
     "year": 2025,
     "citations": 0,
@@ -189,7 +287,12 @@
   {
     "id": "16",
     "title": "Diabalance ML: Enhancing Diabetes Detection Performance Through Dataset Balancing Strategies",
-    "authors": ["Hirak Mondal", "Saima Siddika", "Anindya Nag", "Anupam Kumar Bairagi"],
+    "authors": [
+      "Hirak Mondal",
+      "Saima Siddika",
+      "Anindya Nag",
+      "Anupam Kumar Bairagi"
+    ],
     "venue": "Industry 6.0: Technology, Practices, Challenges, and Applications, CRC Press",
     "year": 2024,
     "citations": 0,
@@ -201,10 +304,15 @@
   {
     "id": "17",
     "title": "The Integration of Federated Deep Learning with Internet of Things in Healthcare",
-    "authors": ["Hirak Mondal", "Md. Mehedi Hassan", "Anindya Nag", "Anupam Kumar Bairagi"],
+    "authors": [
+      "Hirak Mondal",
+      "Md. Mehedi Hassan",
+      "Anindya Nag",
+      "Anupam Kumar Bairagi"
+    ],
     "venue": "Federated Deep Learning for Healthcare",
     "year": 2024,
-    "citations": 3,
+    "citations": 4,
     "pdf": "",
     "doi": "",
     "abstract": "The integration of federated deep learning with internet of things in healthcare applications.",
@@ -213,7 +321,12 @@
   {
     "id": "18",
     "title": "Unveiling the Essence of Digital Twins: A Comprehensive Study on Digital Twins for Future Innovation",
-    "authors": ["Hirak Mondal", "Saima Siddika", "Anindya Nag", "Riya Sil"],
+    "authors": [
+      "Hirak Mondal",
+      "Saima Siddika",
+      "Anindya Nag",
+      "Riya Sil"
+    ],
     "venue": "Exploring the Advancements and Future Directions of Digital Twins",
     "year": 2024,
     "citations": 2,
@@ -225,7 +338,12 @@
   {
     "id": "19",
     "title": "Transcending Boundaries: Assessing Transfer Learning's Effectiveness in ECG-Based Heart Disease Prediction",
-    "authors": ["Anindya Nag", "Hirak Mondal", "Md. Mehedi Hassan", "Pranto Saha"],
+    "authors": [
+      "Anindya Nag",
+      "Hirak Mondal",
+      "Md. Mehedi Hassan",
+      "Pranto Saha"
+    ],
     "venue": "Soft Computing in Industry 5.0 for Sustainability",
     "year": 2024,
     "citations": 1,
@@ -237,7 +355,14 @@
   {
     "id": "20",
     "title": "A Systematic Review of Methodologies, Applications, and Emerging Challenges",
-    "authors": ["Ayontika Das", "Swan Mollick", "Hirak Mondal", "Teresa Jency Bala", "Anindya Nag", "Anindita Guho"],
+    "authors": [
+      "Ayontika Das",
+      "Swan Mollick",
+      "Hirak Mondal",
+      "Teresa Jency Bala",
+      "Anindya Nag",
+      "Anindita Guho"
+    ],
     "venue": "Feature Fusion for Next-Generation AI",
     "year": 2025,
     "citations": 0,
@@ -249,7 +374,12 @@
   {
     "id": "21",
     "title": "Practical Brain: Applications of Cognitive Neuroscience in Various Sectors",
-    "authors": ["Teresa Jency Bala", "Hirak Mondal", "Akash Adhikary", "Anindya Nag"],
+    "authors": [
+      "Teresa Jency Bala",
+      "Hirak Mondal",
+      "Akash Adhikary",
+      "Anindya Nag"
+    ],
     "venue": "Graph Neural Networks for Neurological Disorders: Fundamentals, Applications",
     "year": 2025,
     "citations": 0,
@@ -257,5 +387,20 @@
     "doi": "",
     "abstract": "Applications of Cognitive Neuroscience in Various Sectors using Graph Neural Networks.",
     "type": "book-chapter"
+  },
+  {
+    "id": "scholar-1771565528864-0",
+    "title": "Automated Plastic Waste Detection Using Advanced Deep Learning Frameworks",
+    "authors": [
+      "Hirak Mondal"
+    ],
+    "venue": "Unknown",
+    "year": 2025,
+    "citations": 0,
+    "pdf": "",
+    "doi": "",
+    "abstract": "",
+    "type": "journal",
+    "impactFactor": ""
   }
 ]
