@@ -23,6 +23,41 @@ function getConfig() {
 }
 
 /**
+ * Build standard headers for GitHub API.
+ * Uses 'token' prefix which works with both classic PATs and fine-grained PATs.
+ */
+function getHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `token ${token}`,
+    "Content-Type": "application/json",
+    Accept: "application/vnd.github.v3+json",
+  };
+}
+
+/**
+ * URL-encode a file path for use in GitHub API URLs.
+ * Encodes each path segment individually to preserve slashes.
+ */
+function encodeFilePath(filePath: string): string {
+  return filePath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
+/**
+ * Sanitize a filename by removing problematic characters.
+ */
+export function sanitizeFileName(filename: string): string {
+  // Replace spaces, parentheses, and other problematic chars
+  return filename
+    .replace(/[()]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/_{2,}/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
+/**
  * Helper to extract error details from a GitHub API response
  */
 async function getErrorDetails(
@@ -42,7 +77,6 @@ async function getErrorDetails(
       details += ` | Docs: ${body.documentation_url}`;
     }
   } catch {
-    // If we can't parse the response body, just use the status
     try {
       const text = await response.text();
       if (text) details += ` - ${text.substring(0, 200)}`;
@@ -58,14 +92,12 @@ async function getErrorDetails(
  */
 export async function readFromGitHub(filePath: string): Promise<string> {
   const { token, owner, repo } = getConfig();
+  const encodedPath = encodeFilePath(filePath);
 
   const response = await fetch(
-    `${GITHUB_API}/repos/${owner}/${repo}/contents/${filePath}`,
+    `${GITHUB_API}/repos/${owner}/${repo}/contents/${encodedPath}`,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
+      headers: getHeaders(token),
       cache: "no-store",
     },
   );
@@ -83,37 +115,37 @@ export async function readFromGitHub(filePath: string): Promise<string> {
 }
 
 /**
- * Commit multiple files to GitHub using the Contents API (single file at a time).
- * This is simpler and more reliable than the Git Trees API.
- * Falls back to the Contents API which handles encoding automatically.
+ * Commit multiple files to GitHub in a single atomic commit.
+ * Uses the Git Trees API (creates blobs → tree → commit → updates ref).
+ * Falls back to Contents API if Trees API fails.
  */
 export async function commitToGitHub(
   files: Array<{ path: string; content: string }>,
   message: string,
 ): Promise<void> {
   const { token, owner, repo } = getConfig();
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/vnd.github.v3+json",
-  };
+  const headers = getHeaders(token);
   const baseUrl = `${GITHUB_API}/repos/${owner}/${repo}`;
 
-  // Try the Git Trees API first (atomic commit), fall back to Contents API
+  // Try Trees API first (atomic), then Contents API (one at a time)
   try {
     await commitViaTreesAPI(files, message, headers, baseUrl);
+    return;
   } catch (treesError) {
-    console.warn(
-      "Git Trees API failed, falling back to Contents API:",
-      treesError,
-    );
+    console.warn("[github] Trees API failed:", treesError);
+  }
+
+  try {
     await commitViaContentsAPI(files, message, headers, baseUrl);
+    return;
+  } catch (contentsError) {
+    console.error("[github] Contents API also failed:", contentsError);
+    throw contentsError;
   }
 }
 
 /**
  * Commit via Git Trees API (atomic multi-file commit).
- * Uses base64 encoding for blob content to avoid encoding issues.
  */
 async function commitViaTreesAPI(
   files: Array<{ path: string; content: string }>,
@@ -121,37 +153,39 @@ async function commitViaTreesAPI(
   headers: Record<string, string>,
   baseUrl: string,
 ): Promise<void> {
-  // 1. Get latest commit SHA on main branch
-  let refRes = await fetch(`${baseUrl}/git/ref/heads/main`, { headers });
+  // 1. Get the default branch
+  const repoRes = await fetch(baseUrl, { headers });
+  if (!repoRes.ok) {
+    throw new Error(`Cannot access repo: HTTP ${repoRes.status}`);
+  }
+  const repoData = await repoRes.json();
+  const defaultBranch = repoData.default_branch || "main";
+
+  // 2. Get latest commit SHA
+  const refRes = await fetch(
+    `${baseUrl}/git/ref/heads/${defaultBranch}`,
+    { headers },
+  );
   if (!refRes.ok) {
-    // Try 'master' branch as fallback
-    refRes = await fetch(`${baseUrl}/git/ref/heads/master`, { headers });
-    if (!refRes.ok) {
-      const errMsg = await getErrorDetails(
-        refRes,
-        "Failed to get branch reference (tried main and master)",
-      );
-      throw new Error(errMsg);
-    }
+    const errMsg = await getErrorDetails(
+      refRes,
+      `Failed to get ref for branch '${defaultBranch}'`,
+    );
+    throw new Error(errMsg);
   }
   const refData = await refRes.json();
   const latestCommitSha = refData.object.sha;
-  const refPath = refData.ref; // e.g., "refs/heads/main"
 
-  // 2. Get the tree SHA of the latest commit
+  // 3. Get the tree SHA of the latest commit
   const commitRes = await fetch(`${baseUrl}/git/commits/${latestCommitSha}`, {
     headers,
   });
   if (!commitRes.ok) {
-    const errMsg = await getErrorDetails(
-      commitRes,
-      "Failed to get commit data",
-    );
-    throw new Error(errMsg);
+    throw new Error(`Failed to get commit: HTTP ${commitRes.status}`);
   }
   const commitData = await commitRes.json();
 
-  // 3. Create blobs for each file using base64 encoding (more reliable)
+  // 4. Create blobs for each file
   const treeEntries = [];
   for (const file of files) {
     const base64Content = Buffer.from(file.content, "utf-8").toString("base64");
@@ -176,19 +210,18 @@ async function commitViaTreesAPI(
     });
   }
 
-  // 4. Create a new tree
+  // 5. Create a new tree
   const treeRes = await fetch(`${baseUrl}/git/trees`, {
     method: "POST",
     headers,
     body: JSON.stringify({ base_tree: commitData.tree.sha, tree: treeEntries }),
   });
   if (!treeRes.ok) {
-    const errMsg = await getErrorDetails(treeRes, "Failed to create tree");
-    throw new Error(errMsg);
+    throw new Error(`Failed to create tree: HTTP ${treeRes.status}`);
   }
   const treeData = await treeRes.json();
 
-  // 5. Create a new commit
+  // 6. Create a new commit
   const newCommitRes = await fetch(`${baseUrl}/git/commits`, {
     method: "POST",
     headers,
@@ -199,32 +232,26 @@ async function commitViaTreesAPI(
     }),
   });
   if (!newCommitRes.ok) {
-    const errMsg = await getErrorDetails(
-      newCommitRes,
-      "Failed to create commit",
-    );
-    throw new Error(errMsg);
+    throw new Error(`Failed to create commit: HTTP ${newCommitRes.status}`);
   }
   const newCommitData = await newCommitRes.json();
 
-  // 6. Update the branch reference to point to new commit
-  const updateRefRes = await fetch(`${baseUrl}/git/${refPath}`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({ sha: newCommitData.sha }),
-  });
+  // 7. Update the branch reference
+  const updateRefRes = await fetch(
+    `${baseUrl}/git/refs/heads/${defaultBranch}`,
+    {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ sha: newCommitData.sha }),
+    },
+  );
   if (!updateRefRes.ok) {
-    const errMsg = await getErrorDetails(
-      updateRefRes,
-      "Failed to update branch reference",
-    );
-    throw new Error(errMsg);
+    throw new Error(`Failed to update ref: HTTP ${updateRefRes.status}`);
   }
 }
 
 /**
  * Fallback: Commit via Contents API (one file at a time).
- * More reliable but not atomic - each file is a separate commit.
  */
 async function commitViaContentsAPI(
   files: Array<{ path: string; content: string }>,
@@ -233,10 +260,11 @@ async function commitViaContentsAPI(
   baseUrl: string,
 ): Promise<void> {
   for (const file of files) {
+    const encodedPath = encodeFilePath(file.path);
     // Get the current file SHA (needed for updates)
     let existingSha: string | undefined;
     try {
-      const getRes = await fetch(`${baseUrl}/contents/${file.path}`, {
+      const getRes = await fetch(`${baseUrl}/contents/${encodedPath}`, {
         headers,
       });
       if (getRes.ok) {
@@ -244,7 +272,7 @@ async function commitViaContentsAPI(
         existingSha = existing.sha;
       }
     } catch {
-      // File doesn't exist yet, that's fine for creation
+      // File doesn't exist yet
     }
 
     const base64Content = Buffer.from(file.content, "utf-8").toString("base64");
@@ -257,7 +285,7 @@ async function commitViaContentsAPI(
       body.sha = existingSha;
     }
 
-    const putRes = await fetch(`${baseUrl}/contents/${file.path}`, {
+    const putRes = await fetch(`${baseUrl}/contents/${encodedPath}`, {
       method: "PUT",
       headers,
       body: JSON.stringify(body),
@@ -283,14 +311,10 @@ export async function testGitHubConnection(): Promise<{
 }> {
   try {
     const { token, owner, repo } = getConfig();
+    const headers = getHeaders(token);
 
     // Test 1: Check if token is valid
-    const userRes = await fetch(`${GITHUB_API}/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
-    });
+    const userRes = await fetch(`${GITHUB_API}/user`, { headers });
     if (!userRes.ok) {
       return {
         success: false,
@@ -301,10 +325,7 @@ export async function testGitHubConnection(): Promise<{
 
     // Test 2: Check repo access
     const repoRes = await fetch(`${GITHUB_API}/repos/${owner}/${repo}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github.v3+json",
-      },
+      headers,
     });
     if (!repoRes.ok) {
       return {
@@ -323,14 +344,40 @@ export async function testGitHubConnection(): Promise<{
       };
     }
 
+    // Test 4: Try to read a file to verify contents access
+    let canRead = false;
+    try {
+      const testRes = await fetch(
+        `${GITHUB_API}/repos/${owner}/${repo}/contents/package.json`,
+        { headers },
+      );
+      canRead = testRes.ok;
+    } catch {
+      canRead = false;
+    }
+
+    // Test 5: Try to access git refs to verify git API access
+    let canAccessGit = false;
+    try {
+      const gitRes = await fetch(
+        `${GITHUB_API}/repos/${owner}/${repo}/git/ref/heads/${repoData.default_branch}`,
+        { headers },
+      );
+      canAccessGit = gitRes.ok;
+    } catch {
+      canAccessGit = false;
+    }
+
     return {
       success: true,
-      message: `Connected as ${userData.login} to ${owner}/${repo} (push access confirmed)`,
+      message: `Connected as ${userData.login} to ${owner}/${repo} (push: ✓, read: ${canRead ? "✓" : "✗"}, git: ${canAccessGit ? "✓" : "✗"})`,
       details: {
         user: userData.login,
         repo: `${owner}/${repo}`,
         defaultBranch: repoData.default_branch,
         permissions,
+        canRead,
+        canAccessGit,
       },
     };
   } catch (error) {
@@ -354,17 +401,16 @@ export async function uploadBinaryToGitHub(
   message: string,
 ): Promise<void> {
   const { token, owner, repo } = getConfig();
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/vnd.github.v3+json",
-  };
+  const headers = getHeaders(token);
   const baseUrl = `${GITHUB_API}/repos/${owner}/${repo}`;
+  const encodedPath = encodeFilePath(filePath);
 
   // Check if file already exists (need SHA for update)
   let existingSha: string | undefined;
   try {
-    const getRes = await fetch(`${baseUrl}/contents/${filePath}`, { headers });
+    const getRes = await fetch(`${baseUrl}/contents/${encodedPath}`, {
+      headers,
+    });
     if (getRes.ok) {
       const existing = await getRes.json();
       existingSha = existing.sha;
@@ -381,7 +427,7 @@ export async function uploadBinaryToGitHub(
     body.sha = existingSha;
   }
 
-  const putRes = await fetch(`${baseUrl}/contents/${filePath}`, {
+  const putRes = await fetch(`${baseUrl}/contents/${encodedPath}`, {
     method: "PUT",
     headers,
     body: JSON.stringify(body),
@@ -404,19 +450,17 @@ export async function deleteFromGitHub(
   message: string,
 ): Promise<void> {
   const { token, owner, repo } = getConfig();
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/vnd.github.v3+json",
-  };
+  const headers = getHeaders(token);
   const baseUrl = `${GITHUB_API}/repos/${owner}/${repo}`;
+  const encodedPath = encodeFilePath(filePath);
 
   // Get the file SHA (required for deletion)
-  const getRes = await fetch(`${baseUrl}/contents/${filePath}`, { headers });
+  const getRes = await fetch(`${baseUrl}/contents/${encodedPath}`, {
+    headers,
+  });
   if (!getRes.ok) {
     if (getRes.status === 404) {
-      // File doesn't exist, nothing to delete
-      return;
+      return; // File doesn't exist
     }
     const errMsg = await getErrorDetails(
       getRes,
@@ -426,7 +470,7 @@ export async function deleteFromGitHub(
   }
   const fileData = await getRes.json();
 
-  const delRes = await fetch(`${baseUrl}/contents/${filePath}`, {
+  const delRes = await fetch(`${baseUrl}/contents/${encodedPath}`, {
     method: "DELETE",
     headers,
     body: JSON.stringify({
@@ -451,19 +495,17 @@ export async function listGitHubFiles(
   dirPath: string,
 ): Promise<Array<{ name: string; path: string; size: number; type: string }>> {
   const { token, owner, repo } = getConfig();
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/vnd.github.v3+json",
-  };
+  const headers = getHeaders(token);
+  const encodedPath = encodeFilePath(dirPath);
 
   const response = await fetch(
-    `${GITHUB_API}/repos/${owner}/${repo}/contents/${dirPath}`,
+    `${GITHUB_API}/repos/${owner}/${repo}/contents/${encodedPath}`,
     { headers, cache: "no-store" },
   );
 
   if (!response.ok) {
     if (response.status === 404) {
-      return []; // Directory doesn't exist
+      return [];
     }
     const errMsg = await getErrorDetails(
       response,
@@ -474,7 +516,7 @@ export async function listGitHubFiles(
 
   const data = await response.json();
   if (!Array.isArray(data)) {
-    return []; // Not a directory
+    return [];
   }
 
   return data

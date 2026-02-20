@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Plus, Trash2, ArrowLeft, RefreshCw, Upload, FileText, Image as ImageIcon, X } from "lucide-react";
+import {
+  Save,
+  Plus,
+  Trash2,
+  ArrowLeft,
+  RefreshCw,
+  Upload,
+  FileText,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface ProfileData {
@@ -2461,8 +2471,12 @@ function FilesSection({
 }) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [fileMessage, setFileMessage] = useState("");
-  const [photos, setPhotos] = useState<Array<{ name: string; path: string; size: number }>>([]);
-  const [cvFiles, setCvFiles] = useState<Array<{ name: string; path: string; size: number }>>([]);
+  const [photos, setPhotos] = useState<
+    Array<{ name: string; path: string; size: number }>
+  >([]);
+  const [cvFiles, setCvFiles] = useState<
+    Array<{ name: string; path: string; size: number }>
+  >([]);
   const [loadingFiles, setLoadingFiles] = useState(true);
 
   useEffect(() => {
@@ -2527,7 +2541,9 @@ function FilesSection({
         setFileMessage(`❌ ${result.error}`);
       }
     } catch (err) {
-      setFileMessage(`❌ Upload failed: ${err instanceof Error ? err.message : String(err)}`);
+      setFileMessage(
+        `❌ Upload failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
 
     setUploading(null);
@@ -2536,7 +2552,10 @@ function FilesSection({
   };
 
   const handleDelete = async (filePath: string, category: string) => {
-    if (!confirm(`Are you sure you want to delete ${filePath.split("/").pop()}?`)) return;
+    if (
+      !confirm(`Are you sure you want to delete ${filePath.split("/").pop()}?`)
+    )
+      return;
 
     setFileMessage("");
     try {
@@ -2554,7 +2573,9 @@ function FilesSection({
         setFileMessage(`❌ ${result.error}`);
       }
     } catch (err) {
-      setFileMessage(`❌ Delete failed: ${err instanceof Error ? err.message : String(err)}`);
+      setFileMessage(
+        `❌ Delete failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   };
 
@@ -2586,8 +2607,10 @@ function FilesSection({
           Homepage Photo
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          This photo appears in the Hero section on your homepage.
-          Current: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{data.photo || "/Hirak.jpg"}</code>
+          This photo appears in the Hero section on your homepage. Current:{" "}
+          <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">
+            {data.photo || "/Hirak.jpg"}
+          </code>
         </p>
         {data.photo && (
           <div className="mb-4">
@@ -2595,7 +2618,9 @@ function FilesSection({
               src={data.photo}
               alt="Homepage photo preview"
               className="w-32 h-32 object-cover rounded-lg border"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
             />
           </div>
         )}
@@ -2628,8 +2653,10 @@ function FilesSection({
           About Section Photo
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          This photo appears in the About Me section.
-          Current: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{data.aboutPhoto || "/Abou.jpg"}</code>
+          This photo appears in the About Me section. Current:{" "}
+          <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">
+            {data.aboutPhoto || "/Abou.jpg"}
+          </code>
         </p>
         {(data.aboutPhoto || "/Abou.jpg") && (
           <div className="mb-4">
@@ -2637,7 +2664,9 @@ function FilesSection({
               src={data.aboutPhoto || "/Abou.jpg"}
               alt="About photo preview"
               className="w-32 h-32 object-cover rounded-lg border"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
             />
           </div>
         )}
@@ -2670,27 +2699,41 @@ function FilesSection({
           CV / Resume (PDF)
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Upload your CV as a PDF. The &ldquo;Download CV&rdquo; button will link to this file.
-          Current: <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">{data.cvPath || "/cv/Hirak.pdf"}</code>
+          Upload your CV as a PDF. The &ldquo;Download CV&rdquo; button will
+          link to this file. Current:{" "}
+          <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">
+            {data.cvPath || "/cv/Hirak.pdf"}
+          </code>
         </p>
 
         {/* Current CV files */}
         {cvFiles.length > 0 && (
           <div className="mb-4">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current CV Files:</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Current CV Files:
+            </p>
             <div className="space-y-2">
               {cvFiles.map((file) => (
-                <div key={file.path} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                <div
+                  key={file.path}
+                  className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-red-500" />
                     <div>
-                      <p className="font-medium text-gray-800 dark:text-gray-200">{file.name}</p>
-                      <p className="text-xs text-gray-500">{formatSize(file.size)}</p>
+                      <p className="font-medium text-gray-800 dark:text-gray-200">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatSize(file.size)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setData({ ...data, cvPath: `/cv/${file.name}` })}
+                      onClick={() =>
+                        setData({ ...data, cvPath: `/cv/${file.name}` })
+                      }
                       className="text-sm bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 px-3 py-1 rounded hover:bg-green-200"
                     >
                       Use This
@@ -2744,29 +2787,39 @@ function FilesSection({
             Loading files...
           </div>
         ) : photos.length === 0 ? (
-          <p className="text-gray-500">No image files found in public/ directory.</p>
+          <p className="text-gray-500">
+            No image files found in public/ directory.
+          </p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {photos.map((photo) => (
-              <div key={photo.path} className="relative group border rounded-lg overflow-hidden">
+              <div
+                key={photo.path}
+                className="relative group border rounded-lg overflow-hidden"
+              >
                 <img
                   src={`/${photo.name}`}
                   alt={photo.name}
                   className="w-full h-32 object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23ccc' width='100' height='100'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666'%3ENo Preview%3C/text%3E%3C/svg%3E";
+                    (e.target as HTMLImageElement).src =
+                      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23ccc' width='100' height='100'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666'%3ENo Preview%3C/text%3E%3C/svg%3E";
                   }}
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button
-                    onClick={() => setData({ ...data, photo: `/${photo.name}` })}
+                    onClick={() =>
+                      setData({ ...data, photo: `/${photo.name}` })
+                    }
                     className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
                     title="Set as Homepage photo"
                   >
                     Home
                   </button>
                   <button
-                    onClick={() => setData({ ...data, aboutPhoto: `/${photo.name}` })}
+                    onClick={() =>
+                      setData({ ...data, aboutPhoto: `/${photo.name}` })
+                    }
                     className="text-xs bg-purple-500 text-white px-2 py-1 rounded"
                     title="Set as About photo"
                   >
@@ -2781,8 +2834,12 @@ function FilesSection({
                   </button>
                 </div>
                 <div className="p-2 bg-white dark:bg-gray-800">
-                  <p className="text-xs truncate text-gray-700 dark:text-gray-300">{photo.name}</p>
-                  <p className="text-xs text-gray-400">{formatSize(photo.size)}</p>
+                  <p className="text-xs truncate text-gray-700 dark:text-gray-300">
+                    {photo.name}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {formatSize(photo.size)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -2802,9 +2859,11 @@ function FilesSection({
 
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
         <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-          <strong>Note:</strong> After uploading files, click &ldquo;Preview Changes&rdquo; then &ldquo;Confirm &amp; Update Website&rdquo;
-          to save the photo/CV path settings. The file itself is uploaded immediately, but the profile data
-          (which photo to use where) needs to be saved separately.
+          <strong>Note:</strong> After uploading files, click &ldquo;Preview
+          Changes&rdquo; then &ldquo;Confirm &amp; Update Website&rdquo; to save
+          the photo/CV path settings. The file itself is uploaded immediately,
+          but the profile data (which photo to use where) needs to be saved
+          separately.
         </p>
       </div>
     </div>

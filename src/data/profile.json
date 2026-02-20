@@ -68,10 +68,7 @@
     "i10Index": 3
   },
   "skills": {
-    "languages": [
-      "English (Intermediate)",
-      "Bangla (Native)"
-    ],
+    "languages": ["English (Intermediate)", "Bangla (Native)"],
     "programming": [
       "Python (NumPy, SciPy, Matplotlib, Pandas)",
       "C",
@@ -90,15 +87,8 @@
       "Windows",
       "Arduino"
     ],
-    "tools": [
-      "MySQL Workbench",
-      "Git",
-      "Docker"
-    ],
-    "documentation": [
-      "Microsoft Office Suite",
-      "LaTeX"
-    ],
+    "tools": ["MySQL Workbench", "Git", "Docker"],
+    "documentation": ["Microsoft Office Suite", "LaTeX"],
     "soft": [
       "Teamwork",
       "Leadership",

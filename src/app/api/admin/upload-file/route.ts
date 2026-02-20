@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
-import { isGitHubConfigured, uploadBinaryToGitHub } from "@/lib/github";
+import {
+  isGitHubConfigured,
+  uploadBinaryToGitHub,
+  sanitizeFileName,
+} from "@/lib/github";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +77,14 @@ export async function POST(request: NextRequest) {
       case "cv":
         targetDir = "public/cv";
         allowedTypes = ALLOWED_TYPES.document;
-        fileName = customName || file.name;
+        // Sanitize the CV filename to remove spaces, parentheses, etc.
+        const rawName = customName || file.name;
+        const ext = getExtension(rawName);
+        const nameWithoutExt = rawName.substring(
+          0,
+          rawName.length - ext.length,
+        );
+        fileName = sanitizeFileName(nameWithoutExt) + ext;
         break;
       default:
         return NextResponse.json(
