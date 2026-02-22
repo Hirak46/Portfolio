@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
-import { existsSync } from "fs";
 import path from "path";
 import {
   isGitHubConfigured,
@@ -890,58 +889,11 @@ async function processAIInstruction(
           "🚀 Changes committed to GitHub! Site will auto-update in ~30 seconds.",
         );
       } else {
-        // Local development: write to filesystem
-        const dataDir = path.join(process.cwd(), "src", "data");
-        const publicDir = path.join(process.cwd(), "public", "data");
-
-        // Ensure directories exist
-        if (!existsSync(dataDir)) {
-          await fs.mkdir(dataDir, { recursive: true });
-        }
-        if (!existsSync(publicDir)) {
-          await fs.mkdir(publicDir, { recursive: true });
-        }
-
-        // Always save profile
-        await fs.writeFile(
-          path.join(dataDir, "profile.json"),
-          profileJson,
-          "utf-8",
-        );
-        await fs.writeFile(
-          path.join(publicDir, "profile.json"),
-          profileJson,
-          "utf-8",
-        );
-
-        if (uniqueFiles.includes("publications.json")) {
-          await fs.writeFile(
-            path.join(dataDir, "publications.json"),
-            pubsJson,
-            "utf-8",
-          );
-          await fs.writeFile(
-            path.join(publicDir, "publications.json"),
-            pubsJson,
-            "utf-8",
-          );
-        }
-
-        if (uniqueFiles.includes("projects.json")) {
-          await fs.writeFile(
-            path.join(dataDir, "projects.json"),
-            projsJson,
-            "utf-8",
-          );
-          await fs.writeFile(
-            path.join(publicDir, "projects.json"),
-            projsJson,
-            "utf-8",
-          );
-        }
-
+        // Production serverless: filesystem is read-only
         changes.push("");
-        changes.push("💾 Changes saved to local files successfully!");
+        changes.push(
+          "❌ GitHub integration is not configured. Set GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO environment variables to save changes in production.",
+        );
       }
     } catch (saveError: any) {
       console.error("Error saving data:", saveError);

@@ -24,11 +24,18 @@ function getConfig() {
 
 /**
  * Build standard headers for GitHub API.
- * Uses 'token' prefix which works with both classic PATs and fine-grained PATs.
+ * Detects token type and uses the correct Authorization prefix:
+ * - Classic PATs (ghp_*): uses 'token' prefix
+ * - Fine-grained PATs (github_pat_*): uses 'Bearer' prefix
+ * - Unknown format: tries 'Bearer' first (works for both modern token types)
  */
 function getHeaders(token: string): Record<string, string> {
+  // Fine-grained PATs start with 'github_pat_', classic PATs with 'ghp_'
+  // 'Bearer' works for fine-grained PATs and GitHub Apps
+  // 'token' works for classic PATs
+  const prefix = token.startsWith("ghp_") ? "token" : "Bearer";
   return {
-    Authorization: `token ${token}`,
+    Authorization: `${prefix} ${token}`,
     "Content-Type": "application/json",
     Accept: "application/vnd.github.v3+json",
   };
@@ -127,20 +134,65 @@ export async function commitToGitHub(
   const headers = getHeaders(token);
   const baseUrl = `${GITHUB_API}/repos/${owner}/${repo}`;
 
+  // First, verify the token can access the repo at all
+  const verifyRes = await fetch(baseUrl, { headers, cache: "no-store" });
+  if (!verifyRes.ok) {
+    const status = verifyRes.status;
+    if (status === 401 || status === 403) {
+      throw new Error(
+        `GitHub authentication failed (HTTP ${status}). Your GITHUB_TOKEN may be invalid, expired, or missing required scopes. ` +
+          `Go to https://github.com/settings/tokens and create a new token with 'repo' scope (classic) or 'Contents: Read and write' permission (fine-grained).`,
+      );
+    }
+    if (status === 404) {
+      throw new Error(
+        `GitHub repo '${owner}/${repo}' not found (HTTP 404). This can mean: ` +
+          `1) The repo doesn't exist, 2) GITHUB_OWNER or GITHUB_REPO env vars are wrong, or ` +
+          `3) Your GITHUB_TOKEN doesn't have access to this repo. ` +
+          `Current config: owner='${owner}', repo='${repo}'. ` +
+          `If using a fine-grained PAT, ensure the token has 'Repository access' set to this specific repo.`,
+      );
+    }
+    throw new Error(`Cannot access GitHub repo: HTTP ${status}`);
+  }
+
+  // Check push permissions
+  const repoInfo = await verifyRes.json();
+  const permissions = repoInfo.permissions || {};
+  if (!permissions.push && !permissions.admin) {
+    throw new Error(
+      `Your GITHUB_TOKEN does not have write/push permissions to '${owner}/${repo}'. ` +
+        `Current permissions: ${JSON.stringify(permissions)}. ` +
+        `For classic PATs: enable the 'repo' scope. ` +
+        `For fine-grained PATs: grant 'Contents: Read and write' permission.`,
+    );
+  }
+
   // Try Trees API first (atomic), then Contents API (one at a time)
+  let treesErrorMsg = "";
   try {
     await commitViaTreesAPI(files, message, headers, baseUrl);
     return;
   } catch (treesError) {
-    console.warn("[github] Trees API failed:", treesError);
+    treesErrorMsg =
+      treesError instanceof Error ? treesError.message : String(treesError);
+    console.warn("[github] Trees API failed:", treesErrorMsg);
   }
 
   try {
     await commitViaContentsAPI(files, message, headers, baseUrl);
     return;
   } catch (contentsError) {
-    console.error("[github] Contents API also failed:", contentsError);
-    throw contentsError;
+    const contentsMsg =
+      contentsError instanceof Error
+        ? contentsError.message
+        : String(contentsError);
+    console.error("[github] Contents API also failed:", contentsMsg);
+    throw new Error(
+      `GitHub save failed via both methods. ` +
+        `Trees API: ${treesErrorMsg}. ` +
+        `Contents API: ${contentsMsg}`,
+    );
   }
 }
 
@@ -162,10 +214,9 @@ async function commitViaTreesAPI(
   const defaultBranch = repoData.default_branch || "main";
 
   // 2. Get latest commit SHA
-  const refRes = await fetch(
-    `${baseUrl}/git/ref/heads/${defaultBranch}`,
-    { headers },
-  );
+  const refRes = await fetch(`${baseUrl}/git/ref/heads/${defaultBranch}`, {
+    headers,
+  });
   if (!refRes.ok) {
     const errMsg = await getErrorDetails(
       refRes,
@@ -313,12 +364,37 @@ export async function testGitHubConnection(): Promise<{
     const { token, owner, repo } = getConfig();
     const headers = getHeaders(token);
 
+    // Detect token type for diagnostics
+    const tokenType = token.startsWith("ghp_")
+      ? "classic"
+      : token.startsWith("github_pat_")
+        ? "fine-grained"
+        : "unknown";
+    const authPrefix = token.startsWith("ghp_") ? "token" : "Bearer";
+
     // Test 1: Check if token is valid
     const userRes = await fetch(`${GITHUB_API}/user`, { headers });
     if (!userRes.ok) {
+      // If using unknown token format, try the other auth prefix
+      if (tokenType === "unknown") {
+        const altPrefix = authPrefix === "Bearer" ? "token" : "Bearer";
+        const altHeaders = {
+          ...headers,
+          Authorization: `${altPrefix} ${token}`,
+        };
+        const altRes = await fetch(`${GITHUB_API}/user`, {
+          headers: altHeaders,
+        });
+        if (altRes.ok) {
+          return {
+            success: false,
+            message: `Token works with '${altPrefix}' prefix but not '${authPrefix}'. Token format not auto-detected. Please use a standard GitHub PAT (starts with 'ghp_' or 'github_pat_').`,
+          };
+        }
+      }
       return {
         success: false,
-        message: `GitHub token is invalid or expired (HTTP ${userRes.status})`,
+        message: `GitHub token is invalid or expired (HTTP ${userRes.status}). Token type detected: ${tokenType}. Auth prefix used: '${authPrefix}'. Go to https://github.com/settings/tokens to create a new token.`,
       };
     }
     const userData = await userRes.json();
@@ -330,7 +406,7 @@ export async function testGitHubConnection(): Promise<{
     if (!repoRes.ok) {
       return {
         success: false,
-        message: `Cannot access repo ${owner}/${repo} (HTTP ${repoRes.status}). Check GITHUB_OWNER and GITHUB_REPO env vars.`,
+        message: `Cannot access repo ${owner}/${repo} (HTTP ${repoRes.status}). Token type: ${tokenType}. Check GITHUB_OWNER and GITHUB_REPO env vars. If using a fine-grained PAT, ensure this repo is in the token's 'Repository access' list.`,
       };
     }
     const repoData = await repoRes.json();
@@ -340,7 +416,11 @@ export async function testGitHubConnection(): Promise<{
     if (!permissions.push) {
       return {
         success: false,
-        message: `Token does not have push permission to ${owner}/${repo}. Update token scopes to include 'repo' or 'contents:write'.`,
+        message:
+          `Token does not have push permission to ${owner}/${repo}. Token type: ${tokenType}. ` +
+          (tokenType === "fine-grained"
+            ? `For fine-grained PATs: grant 'Contents: Read and write' permission.`
+            : `For classic PATs: enable the 'repo' scope.`),
       };
     }
 
@@ -370,7 +450,7 @@ export async function testGitHubConnection(): Promise<{
 
     return {
       success: true,
-      message: `Connected as ${userData.login} to ${owner}/${repo} (push: ✓, read: ${canRead ? "✓" : "✗"}, git: ${canAccessGit ? "✓" : "✗"})`,
+      message: `Connected as ${userData.login} to ${owner}/${repo} (push: ✓, read: ${canRead ? "✓" : "✗"}, git: ${canAccessGit ? "✓" : "✗"}, token: ${tokenType})`,
       details: {
         user: userData.login,
         repo: `${owner}/${repo}`,
@@ -378,6 +458,7 @@ export async function testGitHubConnection(): Promise<{
         permissions,
         canRead,
         canAccessGit,
+        tokenType,
       },
     };
   } catch (error) {

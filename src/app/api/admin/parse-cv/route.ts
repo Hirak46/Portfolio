@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, readFile, mkdir } from "fs/promises";
+import { readFile } from "fs/promises";
 import { join } from "path";
-import { existsSync } from "fs";
 import {
   isGitHubConfigured,
   readFromGitHub,
@@ -88,20 +87,15 @@ export async function POST(request: NextRequest) {
         "Update profile from CV upload",
       );
     } else {
-      const srcDataDir = join(process.cwd(), "src", "data");
-      const publicDataDir = join(process.cwd(), "public", "data");
-
-      if (!existsSync(srcDataDir)) {
-        await mkdir(srcDataDir, { recursive: true });
-      }
-      if (!existsSync(publicDataDir)) {
-        await mkdir(publicDataDir, { recursive: true });
-      }
-
-      await Promise.all([
-        writeFile(join(srcDataDir, "profile.json"), profileJson, "utf-8"),
-        writeFile(join(publicDataDir, "profile.json"), profileJson, "utf-8"),
-      ]);
+      // Production serverless: filesystem is read-only
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "GitHub integration is not configured. Set GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO environment variables to enable CV parsing and saving.",
+        },
+        { status: 503 },
+      );
     }
 
     return NextResponse.json(

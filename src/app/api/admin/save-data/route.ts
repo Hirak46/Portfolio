@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
 import { isGitHubConfigured, commitToGitHub } from "@/lib/github";
 
 export const dynamic = "force-dynamic";
@@ -86,60 +83,17 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      // Local development: write to filesystem
-      console.log("[save-data] Local mode, writing to filesystem...");
-      const srcDataDir = path.join(process.cwd(), "src", "data");
-      const publicDataDir = path.join(process.cwd(), "public", "data");
-
-      // Ensure directories exist
-      if (!existsSync(srcDataDir)) {
-        await mkdir(srcDataDir, { recursive: true });
-      }
-      if (!existsSync(publicDataDir)) {
-        await mkdir(publicDataDir, { recursive: true });
-      }
-
-      // Write all files
-      await Promise.all([
-        writeFile(path.join(srcDataDir, "profile.json"), profileJson, "utf-8"),
-        writeFile(
-          path.join(publicDataDir, "profile.json"),
-          profileJson,
-          "utf-8",
-        ),
-        writeFile(
-          path.join(srcDataDir, "publications.json"),
-          publicationsJson,
-          "utf-8",
-        ),
-        writeFile(
-          path.join(publicDataDir, "publications.json"),
-          publicationsJson,
-          "utf-8",
-        ),
-        writeFile(
-          path.join(srcDataDir, "projects.json"),
-          projectsJson,
-          "utf-8",
-        ),
-        writeFile(
-          path.join(publicDataDir, "projects.json"),
-          projectsJson,
-          "utf-8",
-        ),
-      ]);
-
-      console.log("[save-data] Successfully wrote files locally");
+      // Production serverless: filesystem is read-only
+      console.warn(
+        "[save-data] GitHub not configured, cannot write in production.",
+      );
       return NextResponse.json(
         {
-          success: true,
-          message: "Data saved successfully! Changes are live.",
+          success: false,
+          error:
+            "GitHub integration is not configured. Set GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO environment variables to enable saving.",
         },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-          },
-        },
+        { status: 503 },
       );
     }
   } catch (error: unknown) {

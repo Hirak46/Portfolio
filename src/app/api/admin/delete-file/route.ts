@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { unlink } from "fs/promises";
-import { existsSync } from "fs";
 import path from "path";
 import { isGitHubConfigured, deleteFromGitHub } from "@/lib/github";
 
@@ -43,17 +41,15 @@ export async function POST(request: NextRequest) {
         `[delete-file] Successfully deleted ${sanitizedPath} from GitHub`,
       );
     } else {
-      // Local: delete from filesystem
-      const fullPath = path.join(process.cwd(), sanitizedPath);
-      if (existsSync(fullPath)) {
-        await unlink(fullPath);
-        console.log(`[delete-file] Deleted ${fullPath} locally`);
-      } else {
-        return NextResponse.json(
-          { success: false, error: "File not found" },
-          { status: 404 },
-        );
-      }
+      // Production serverless: filesystem is read-only
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "GitHub integration is not configured. Set GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO environment variables to enable file deletion.",
+        },
+        { status: 503 },
+      );
     }
 
     return NextResponse.json(

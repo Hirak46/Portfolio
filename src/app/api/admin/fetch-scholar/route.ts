@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
+import { readFile } from "fs/promises";
 import path from "path";
 import {
   isGitHubConfigured,
@@ -333,36 +332,15 @@ export async function POST(request: NextRequest) {
         ];
         await commitToGitHub(files, "Auto-update from Google Scholar");
       } else {
-        const srcDataDir = path.join(process.cwd(), "src", "data");
-        const publicDataDir = path.join(process.cwd(), "public", "data");
-
-        if (!existsSync(srcDataDir))
-          await mkdir(srcDataDir, { recursive: true });
-        if (!existsSync(publicDataDir))
-          await mkdir(publicDataDir, { recursive: true });
-
-        await Promise.all([
-          writeFile(
-            path.join(srcDataDir, "profile.json"),
-            profileJson,
-            "utf-8",
-          ),
-          writeFile(
-            path.join(publicDataDir, "profile.json"),
-            profileJson,
-            "utf-8",
-          ),
-          writeFile(
-            path.join(srcDataDir, "publications.json"),
-            publicationsJson,
-            "utf-8",
-          ),
-          writeFile(
-            path.join(publicDataDir, "publications.json"),
-            publicationsJson,
-            "utf-8",
-          ),
-        ]);
+        // Production serverless: filesystem is read-only
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "GitHub integration is not configured. Set GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO environment variables to save Scholar data.",
+          },
+          { status: 503 },
+        );
       }
     }
 

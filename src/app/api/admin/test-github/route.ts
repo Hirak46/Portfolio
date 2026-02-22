@@ -25,11 +25,19 @@ export async function GET() {
 
     const result = await testGitHubConnection();
 
+    const token = process.env.GITHUB_TOKEN || "";
+    const tokenType = token.startsWith("ghp_")
+      ? "classic (ghp_*)"
+      : token.startsWith("github_pat_")
+        ? "fine-grained (github_pat_*)"
+        : `unknown (starts with '${token.substring(0, 4)}...')`;
+
     return NextResponse.json({
       ...result,
       configured: true,
+      tokenType,
       envCheck: {
-        GITHUB_TOKEN: "set (hidden)",
+        GITHUB_TOKEN: `set (${tokenType})`,
         GITHUB_OWNER:
           process.env.GITHUB_OWNER || "(not set, defaults to Hirak46)",
         GITHUB_REPO:

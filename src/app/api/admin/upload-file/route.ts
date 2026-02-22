@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
 import {
   isGitHubConfigured,
   uploadBinaryToGitHub,
@@ -120,14 +117,15 @@ export async function POST(request: NextRequest) {
       );
       console.log(`[upload-file] Successfully uploaded ${filePath} to GitHub`);
     } else {
-      // Local: write to filesystem
-      const fullDir = path.join(process.cwd(), targetDir);
-      if (!existsSync(fullDir)) {
-        await mkdir(fullDir, { recursive: true });
-      }
-      const fullPath = path.join(fullDir, fileName);
-      await writeFile(fullPath, buffer);
-      console.log(`[upload-file] Saved ${fullPath} locally`);
+      // Production serverless: filesystem is read-only
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "GitHub integration is not configured. Set GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO environment variables to enable file uploads.",
+        },
+        { status: 503 },
+      );
     }
 
     // Determine the public URL path
