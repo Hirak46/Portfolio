@@ -1,7 +1,8 @@
 ﻿# 🎓 Academic Portfolio Website
+
 > **A modern, responsive academic portfolio with AI-powered content management and cross-browser compatibility**
 
- **Hirak Mondal** - M.Sc. CSE Student, Khulna University
+**Hirak Mondal** - M.Sc. CSE Student, Khulna University
 
 ---
 
@@ -20,6 +21,7 @@
 - [Troubleshooting](#-troubleshooting)
 
 ---
+
 <!--
 ## 🚀 Quick Start (Run the Project)
 
@@ -41,12 +43,14 @@ npm install
 npm run dev
 ```
 -->
+
 ### Access Points
+
 - **🌐 Main Website**: http://localhost:3000
 <!--
 - **🔐 Admin Panel**: http://localhost:3000/admin
 - **📊 AI Agent**: http://localhost:3000/admin (Password: `hirak2024admin`)
--->
+  -->
 
 <!--
 ### Quick Build & Deploy
@@ -342,9 +346,9 @@ All website content is stored in `src/data/` folder.
   "title": "M.Sc. Student in Computer Science and Engineering",
   "email": "hirak.cse.ku@example.com",
   "tagline": "Passionate about AI-driven healthcare...",
-  
+
   "bio": "I am a dedicated researcher...",
-  
+
   "education": [
     {
       "degree": "M.Sc. in Computer Science",
@@ -352,25 +356,25 @@ All website content is stored in `src/data/` folder.
       "year": "2024-Present"
     }
   ],
-  
+
   "researchInterests": [
     "Medical Image Analysis",
     "Deep Learning"
   ],
-  
+
   "skills": {
     "programming": ["Python", "Java", "C++"],
     "frameworks": ["TensorFlow", "PyTorch"],
     "tools": ["Git", "Docker"]
   },
-  
+
   "stats": {
     "publications": 16,
     "citations": 150,
     "hIndex": 8,
     "i10Index": 6
   },
-  
+
   "social": {
     "github": "https://github.com/...",
     "linkedin": "https://linkedin.com/in/...",
@@ -455,9 +459,9 @@ Edit `src/app/layout.tsx`:
 ```typescript
 import { Inter, Roboto } from "next/font/google";
 
-const roboto = Roboto({ 
+const roboto = Roboto({
   weight: ['400', '700'],
-  subsets: ["latin"] 
+  subsets: ["latin"]
 });
 ```
 
@@ -495,15 +499,6 @@ const roboto = Roboto({
    - Vercel Dashboard → Your Project → Settings → Domains
    - Add your custom domain
    - Update DNS records
-
-### Deploy to Netlify
-
-1. Build the project:
-   ```powershell
-   npm run build
-   ```
-
-2. Upload `out/` folder to Netlify
 
 ### Environment Variables
 If using external APIs, add to Vercel:

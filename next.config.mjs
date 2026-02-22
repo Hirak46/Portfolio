@@ -6,7 +6,6 @@ const nextConfig = {
       "github.com",
       "drive.google.com",
       "lh3.googleusercontent.com",
-      "hirak34.netlify.app",
     ],
     remotePatterns: [
       {
@@ -19,12 +18,10 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**.netlify.app",
+        hostname: "**.vercel.app",
       },
     ],
   },
-  // Allow deployment on any platform (Netlify, Vercel, self-hosted)
-  output: process.env.NETLIFY ? undefined : undefined,
   // Trailing slash configuration (consistent across domains)
   trailingSlash: false,
   // Power headers for security
