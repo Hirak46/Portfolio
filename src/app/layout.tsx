@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Academic Portfolio - Research & Publications",
@@ -38,34 +41,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preconnect for fastest font loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* display=optional: NO layout shift. Font loads or system font is used immediately. */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=optional"
-          rel="stylesheet"
-        />
-        {/* Blocking theme script — runs BEFORE React hydrates to prevent flash/CLS */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                try {
-                  var t = localStorage.getItem('theme');
-                  if (t === 'light') {
-                    document.documentElement.classList.remove('dark');
-                  } else {
-                    document.documentElement.classList.add('dark');
-                  }
-                } catch(e) {
-                  document.documentElement.classList.add('dark');
-                }
-                // Remove browser extension attributes that cause hydration mismatches
                 var observer = new MutationObserver(function(mutations) {
                   mutations.forEach(function(m) {
                     if (m.type === 'attributes' && m.attributeName && m.attributeName.startsWith('bis_')) {
@@ -83,7 +62,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
