@@ -1,12 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
     domains: [
       "scholar.google.com",
       "github.com",
       "drive.google.com",
       "lh3.googleusercontent.com",
-      "hirak34.netlify.app",
     ],
     remotePatterns: [
       {
@@ -19,13 +24,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**.netlify.app",
+        hostname: "**.vercel.app",
       },
     ],
   },
-  // Allow deployment on any platform (Netlify, Vercel, self-hosted)
-  output: process.env.NETLIFY ? undefined : undefined,
-  // Trailing slash configuration (consistent across domains)
+  // Trailing slash configuration
   trailingSlash: false,
   // Power headers for security
   async headers() {

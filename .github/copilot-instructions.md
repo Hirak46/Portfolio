@@ -75,5 +75,4 @@ python scripts/fetch_scholar.py --scholar-id YOUR_SCHOLAR_ID
 4. Deploy!
 
 ## 📖 Documentation
-- Quick setup: See `SETUP.md`
-- Full guide: See `README.md`
+- See `README.md` for full setup and deployment guide
