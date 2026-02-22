@@ -60,45 +60,25 @@ export default function Hero() {
         <div className="grid md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
           {/* Left side - Text content */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 1, x: 0 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
             className="space-y-6"
           >
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight"
-            >
+            {/* LCP element — NO opacity:0 or transform to prevent CLS and improve LCP */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
               <span className="gradient-text">{profileData.name}</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-light"
-            >
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-400 font-light">
               {profileData.title}
-            </motion.p>
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-xl"
-            >
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-xl">
               {profileData.tagline}
-            </motion.p>
+            </p>
 
-            {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-6 sm:pt-8"
-            >
+            {/* Stats — shown immediately, no opacity:0 animation */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-6 sm:pt-8">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-primary-400">
                   <AnimatedCounter
@@ -143,16 +123,11 @@ export default function Hero() {
                   i10-index
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Social Links */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-              className="flex space-x-4 pt-4"
-            >
-              {socialIcons.map(({ name, icon: Icon, url, color }, index) => (
+            {/* Social Links — shown immediately */}
+            <div className="flex space-x-4 pt-4">
+              {socialIcons.map(({ name, icon: Icon, url, color }) => (
                 <motion.a
                   key={name}
                   href={url}
@@ -162,28 +137,20 @@ export default function Hero() {
                   whileTap={{ scale: 0.9 }}
                   className={`p-3 rounded-full glass transition-colors ${color}`}
                   aria-label={name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 + index * 0.1 }}
                 >
                   <Icon className="w-6 h-6" />
                 </motion.a>
               ))}
-            </motion.div>
+            </div>
           </motion.div>
 
-          {/* Right side - Profile image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="relative"
-          >
+          {/* Right side - Profile image — NO opacity:0 for LCP */}
+          <div className="relative">
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary-500 to-purple-500 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
               <div className="relative glass rounded-3xl p-2 overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-br from-primary-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
-                  {/* Profile Image */}
+                  {/* Profile Image — LCP candidate, loads with priority */}
                   <Image
                     src={profileData.photo}
                     alt={profileData.name}
@@ -191,11 +158,13 @@ export default function Hero() {
                     height={500}
                     className="w-full h-full object-cover rounded-2xl"
                     priority
+                    fetchPriority="high"
+                    sizes="(max-width: 768px) 100vw, 500px"
                   />
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
