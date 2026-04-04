@@ -20,9 +20,6 @@ npm run dev
 npm run build
 ```
 
-- **Website**: http://localhost:3000
-- **Admin Panel**: http://localhost:3000/admin (Password: `hirak2024admin`)
-
 ---
 
 ## Project Structure
